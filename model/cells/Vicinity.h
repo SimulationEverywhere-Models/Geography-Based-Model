@@ -96,10 +96,6 @@ void from_json(const nlohmann::json &json, Vicinity &vicinity)
 
     vicinity.computeWeightFactor(Vicinity::defaultWeightComputationFunction);
     vicinity.computeCorrelationFactor(Vicinity::defaultCorrelationTransformationFunction);
-
-    static int i = 0;
-
-    printf("%d \n", i++);
 }
 
 #endif //CELL_DEVS_ZHONG_DEVEL_VICINITY_H
