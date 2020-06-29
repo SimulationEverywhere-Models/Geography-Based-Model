@@ -9,7 +9,8 @@
 #include <iostream>
 #include <vector>
 #include <cadmium/celldevs/cell/grid_cell.hpp>
-#include<iomanip>
+#include <iomanip>
+#include "Vicinity.h"
 
 using namespace std;
 using namespace cadmium::celldevs;
@@ -107,17 +108,17 @@ std::ostream &operator << (std::ostream &os, const sir &x) {
 /************************************/
 /*****COMPLEX VICINITY STRUCTURE*****/
 /************************************/
-struct mc {
-    float connection;
-    mc() : connection(0) {}  // a default constructor is required
-    mc(float c) : connection(c) {}
-};
-
-
-void from_json(const nlohmann::json &json, mc &mc)
-{
-    json.at("connection").get_to(mc.connection);
-}
+//struct Vicinity {
+//    float connection;
+//    Vicinity() : connection(0) {}  // a default constructor is required
+//    Vicinity(float c) : connection(c) {}
+//};
+//
+//
+//void from_json(const nlohmann::json &json, Vicinity &Vicinity)
+//{
+//    json.at("connection").get_to(Vicinity.connection);
+//}
 
 struct vr {
     float virulence;
@@ -133,13 +134,13 @@ void from_json(const nlohmann::json& j, vr &v) {
 
 
 template <typename T>
-class zhong_cell : public grid_cell<T, sir, mc> {
+class zhong_cell : public grid_cell<T, sir, Vicinity> {
     public:
 
-        using grid_cell<T, sir, mc>::simulation_clock;
-        using grid_cell<T, sir, mc>::state;
-        using grid_cell<T, sir, mc>::map;
-        using grid_cell<T, sir, mc>::neighbors;
+        using grid_cell<T, sir, Vicinity>::simulation_clock;
+        using grid_cell<T, sir, Vicinity>::state;
+        using grid_cell<T, sir, Vicinity>::map;
+        using grid_cell<T, sir, Vicinity>::neighbors;
 
         using config_type = vr;
         float virulence;
@@ -160,11 +161,11 @@ class zhong_cell : public grid_cell<T, sir, mc> {
         float mortalityRates[NUM_PHASES][INF_NUM] = {{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}};
         float movilityRates[NUM_PHASES][INF_NUM] = {{0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6}};
 
-        zhong_cell() : grid_cell<T, sir, mc>() {}
+        zhong_cell() : grid_cell<T, sir, Vicinity>() {}
 
-        zhong_cell(cell_position const &cell_id, cell_unordered<mc> const &neighborhood, sir initial_state,
-        cell_map<sir, mc> const &map_in, std::string const &delay_id, vr config) :
-        grid_cell<T, sir, mc>(cell_id, neighborhood, initial_state, map_in, delay_id) {
+        zhong_cell(cell_position const &cell_id, cell_unordered<Vicinity> const &neighborhood, sir initial_state,
+        cell_map<sir, Vicinity> const &map_in, std::string const &delay_id, vr config) :
+        grid_cell<T, sir, Vicinity>(cell_id, neighborhood, initial_state, map_in, delay_id) {
             virulence = config.virulence;
             recovery = config.recovery;
         }
@@ -247,8 +248,8 @@ class zhong_cell : public grid_cell<T, sir, mc> {
         void check_valid_vicinity() {
             auto vicinities = state.neighbors_vicinity;
             for (auto neighbor: vicinities) {
-                mc v = neighbor.second;
-                assert(v.connection >= 0 && v.connection <= 1);
+                Vicinity v = neighbor.second;
+                assert(v.correlationFactor >= 0 && v.correlationFactor <= 1);
                 //assert(v.movement >= 0 && v.movement <= 1);
             }
         }
@@ -281,10 +282,10 @@ class zhong_cell : public grid_cell<T, sir, mc> {
             // external infected
             for(auto neighbor: neighbors) {
                 sir nstate = state.neighbors_state.at(neighbor);
-                mc v = state.neighbors_vicinity.at(neighbor);
+                Vicinity v = state.neighbors_vicinity.at(neighbor);
 
                 for (int i = 0; i < nstate.num_inf; ++i) {
-                    inf += v.connection * movilityRates[cstate.phase][i] * cstate.susceptible *
+                    inf += v.correlationFactor * movilityRates[cstate.phase][i] * cstate.susceptible *
                            ((float)nstate.population / (float)cstate.population) *
                            virulencyRates[cstate.phase][i] * nstate.infected[i];
                 }

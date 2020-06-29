@@ -10,17 +10,17 @@
 #include "cells/Zhong_Cell.h"
 
 template <typename T>
-class Zhong_Coupled : public cadmium::celldevs::grid_coupled<T, sir, mc>
+class Zhong_Coupled : public cadmium::celldevs::grid_coupled<T, sir, Vicinity>
 {
     public:
 
-        explicit Zhong_Coupled(std::string const &id) : grid_coupled<T, sir, mc>(id)
+        explicit Zhong_Coupled(std::string const &id) : grid_coupled<T, sir, Vicinity>(id)
         {}
 
         template<typename X>
         using cell_unordered = std::unordered_map<std::string, X>;
 
-        void add_grid_cell_json(std::string const &cell_type, cell_map<sir, mc> &map, std::string const &delay_id,
+        void add_grid_cell_json(std::string const &cell_type, cell_map<sir, Vicinity> &map, std::string const &delay_id,
                                 nlohmann::json const &config) override
         {
             if (cell_type == "hoya")

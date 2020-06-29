@@ -24,16 +24,20 @@
         "type": "von_neumann",
         "range": 1,
         "vicinity": {
-          "connection": 1,
-          "movement": 0.5
+          "borderLength": 10,
+          "borderLengthAdjacentRegion": 10,
+          "numberSharedRoads": 0,
+          "sharedBorderLength": 10
         }
       },
       {
         "type": "custom",
         "neighbors": [[0, 0]],
         "vicinity": {
-          "connection": 1,
-          "movement": 1
+          "borderLength": 10,
+          "borderLengthAdjacentRegion": 10,
+          "numberSharedRoads": 0,
+          "sharedBorderLength": 10
         }
       }
     ]

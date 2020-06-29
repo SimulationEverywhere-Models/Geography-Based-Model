@@ -15,6 +15,6 @@ find_package(Boost COMPONENTS unit_test_framework system thread REQUIRED)
 
 file(MAKE_DIRECTORY logs)
 
-add_executable(hoya src/main.cpp model/cells/Zhong_Cell.h model/Zhong_Coupled.h)
+add_executable(hoya src/main.cpp model/cells/Zhong_Cell.h model/Zhong_Coupled.h model/cells/Vicinity.h)
 
 target_link_libraries(hoya PUBLIC ${Boost_LIBRARIES})
