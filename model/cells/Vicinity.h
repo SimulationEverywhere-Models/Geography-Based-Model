@@ -21,14 +21,7 @@ struct Vicinity
             numberSharedRoads{numberSharedRoads},
             sharedBoundaryLength{sharedBorderLength}
     {
-        computeWeightFactor(defaultWeightComputationFunction);
-
-        computeCorrelationFactor(defaultCorrelationTransformationFunction);
-    }
-
-    void computeCorrelationFactor(const std::function<float(float)> &transformationFunction)
-    {
-        correlationFactor = transformationFunction(weightFactor);
+        computeCorrelationFactor(defaultWeightComputationFunction);
     }
 
     /**
@@ -40,7 +33,7 @@ struct Vicinity
      *                              3. The shared border length between the two aforementioned regions
      *                              4. The number of interconnection roads between the two aforementioned regions
      */
-    void computeWeightFactor(const std::function<float(float, float, float, unsigned int)> &computationFunction)
+    void computeCorrelationFactor(const std::function<float(float, float, float, unsigned int)> &computationFunction)
     {
         weightFactor = computationFunction(borderLength, borderLengthAdjacentRegion, sharedBoundaryLength, numberSharedRoads);
     }
@@ -73,11 +66,6 @@ struct Vicinity
         }
     }
 
-    static float defaultCorrelationTransformationFunction(float weightFactor)
-    {
-        return expf(-1.0f / weightFactor);
-    }
-
     float correlationFactor;
     float borderLength;
     float borderLengthAdjacentRegion;
@@ -94,8 +82,7 @@ void from_json(const nlohmann::json &json, Vicinity &vicinity)
     json.at("numberSharedRoads").get_to(vicinity.numberSharedRoads);
     json.at("sharedBorderLength").get_to(vicinity.sharedBoundaryLength);
 
-    vicinity.computeWeightFactor(Vicinity::defaultWeightComputationFunction);
-    vicinity.computeCorrelationFactor(Vicinity::defaultCorrelationTransformationFunction);
+    vicinity.computeCorrelationFactor(Vicinity::defaultWeightComputationFunction);
 }
 
 #endif //CELL_DEVS_ZHONG_DEVEL_VICINITY_H
