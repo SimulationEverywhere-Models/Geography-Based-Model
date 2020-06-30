@@ -14,35 +14,25 @@ struct Vicinity
 {
     Vicinity() = default;
 
-    Vicinity(float borderLength, float borderLengthAdjacentRegion, unsigned int numberSharedRoads, float sharedBorderLength)
+    Vicinity(std::string cell_id, float shared_border_length, unsigned int number_shared_roads)
             :
-            borderLength{borderLength},
-            borderLengthAdjacentRegion{borderLengthAdjacentRegion},
-            numberSharedRoads{numberSharedRoads},
-            sharedBoundaryLength{sharedBorderLength}
+                cell_id{cell_id},
+                number_shared_roads{number_shared_roads},
+                shared_border_length{shared_border_length}
     {
-        computeCorrelationFactor(defaultWeightComputationFunction);
+
     }
 
-    /**
-     * Calculate the weight factor given the geographical information between two regions.
-     *
-     * @param computationFunction a function that computes the weight factor based off of the following parameters, in order:
-     *                              1. The length of the border of the region this vicinity is representing
-     *                              2. The length of the border of the other region
-     *                              3. The shared border length between the two aforementioned regions
-     *                              4. The number of interconnection roads between the two aforementioned regions
-     */
-    void computeCorrelationFactor(const std::function<float(float, float, float, unsigned int)> &computationFunction)
+    void computeCorrelationFactor(float border_length, float adjacent_border_length)
     {
-        weightFactor = computationFunction(borderLength, borderLengthAdjacentRegion, sharedBoundaryLength, numberSharedRoads);
+        correlationFactor = defaultCorrelationFactor(border_length, adjacent_border_length, shared_border_length, number_shared_roads);
     }
 
-    static float defaultWeightComputationFunction(float borderLength_Region1, float borderLengthRegion2, float sharedBorderLength, unsigned int numberSharedRoads)
+    static float defaultCorrelationFactor(float border_length, float adjacent_border_length, float shared_border_length, unsigned int number_shared_roads)
     {
-        if(sharedBorderLength == 0)
+        if(shared_border_length == 0)
         {
-            if(numberSharedRoads == 0)
+            if(number_shared_roads == 0)
             {
                 return 0;
             }
@@ -53,9 +43,9 @@ struct Vicinity
         }
         else
         {
-            float correlationFactor = (sharedBorderLength / borderLength_Region1 + sharedBorderLength / borderLengthRegion2) / 2.0f;
+            float correlationFactor = (shared_border_length / border_length + shared_border_length / adjacent_border_length) / 2.0f;
 
-            if(numberSharedRoads == 0)
+            if(number_shared_roads == 0)
             {
                 return correlationFactor;
             }
@@ -66,23 +56,21 @@ struct Vicinity
         }
     }
 
+    std::string cell_id;
     float correlationFactor;
-    float borderLength;
-    float borderLengthAdjacentRegion;
-    unsigned int numberSharedRoads;
-    float sharedBoundaryLength;
-
-    float weightFactor;
+    float border_length;
+    float neighbour_border_length;
+    unsigned int number_shared_roads;
+    float shared_border_length;
 };
 
 void from_json(const nlohmann::json &json, Vicinity &vicinity)
 {
-    json.at("borderLength").get_to(vicinity.borderLength);
-    json.at("borderLengthAdjacentRegion").get_to(vicinity.borderLengthAdjacentRegion);
-    json.at("numberSharedRoads").get_to(vicinity.numberSharedRoads);
-    json.at("sharedBorderLength").get_to(vicinity.sharedBoundaryLength);
-
-    vicinity.computeCorrelationFactor(Vicinity::defaultWeightComputationFunction);
+    json.at("cell_id").get_to(vicinity.cell_id);
+    json.at("border_length").get_to(vicinity.border_length);
+    json.at("neighbour_border_length").get_to(vicinity.neighbour_border_length);
+    json.at("shared_border_length").get_to(vicinity.shared_border_length);
+    json.at("number_shared_roads").get_to(vicinity.number_shared_roads);
 }
 
 #endif //CELL_DEVS_ZHONG_DEVEL_VICINITY_H

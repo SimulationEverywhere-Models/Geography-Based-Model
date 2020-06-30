@@ -11,6 +11,7 @@
 #include <cadmium/celldevs/cell/grid_cell.hpp>
 #include <iomanip>
 #include "Vicinity.h"
+#include "SIR.h"
 
 using namespace std;
 using namespace cadmium::celldevs;
@@ -134,13 +135,12 @@ void from_json(const nlohmann::json& j, vr &v) {
 
 
 template <typename T>
-class zhong_cell : public grid_cell<T, sir, Vicinity> {
+    class zhong_cell : public cell<T, std::string, SIR, Vicinity> {
     public:
 
-        using grid_cell<T, sir, Vicinity>::simulation_clock;
-        using grid_cell<T, sir, Vicinity>::state;
-        using grid_cell<T, sir, Vicinity>::map;
-        using grid_cell<T, sir, Vicinity>::neighbors;
+            using cell<T, std::string, SIR, Vicinity>::simulation_clock;
+            using cell<T, std::string, SIR, Vicinity>::state;
+            using cell<T, std::string, SIR, Vicinity>::neighbors;
 
         using config_type = vr;
         float virulence;
@@ -161,18 +161,35 @@ class zhong_cell : public grid_cell<T, sir, Vicinity> {
         float mortalityRates[NUM_PHASES][INF_NUM] = {{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}};
         float movilityRates[NUM_PHASES][INF_NUM] = {{0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6}};
 
-        zhong_cell() : grid_cell<T, sir, Vicinity>() {}
+        zhong_cell() : cell<T, std::string, SIR, Vicinity>() {}
 
-        zhong_cell(cell_position const &cell_id, cell_unordered<Vicinity> const &neighborhood, sir initial_state,
-        cell_map<sir, Vicinity> const &map_in, std::string const &delay_id, vr config) :
-        grid_cell<T, sir, Vicinity>(cell_id, neighborhood, initial_state, map_in, delay_id) {
+        zhong_cell(std::string const &cell_id, cell_unordered<Vicinity> const &neighborhood, SIR initial_state, std::string const &delay_id, vr config) :
+        cell<T, std::string, SIR, Vicinity>(cell_id, neighborhood, initial_state, delay_id) {
             virulence = config.virulence;
             recovery = config.recovery;
         }
 
         // user must define this function. It returns the next cell state and its corresponding timeout
-        sir local_computation() const override {
-            sir res = state.current_state;
+        SIR local_computation() const override {
+
+//            static bool calculateCorrelationFactor = true; // Dont calculate correlation factor every loop
+//
+//            if(calculateCorrelationFactor)
+//            {
+//                SIR currentCountryState = state.current_state;
+//
+//                for(auto neighbor : neighbors)
+//                {
+//                    SIR neighbourCountryState = state.neighbors_state.at(neighbor);
+//                    Vicinity v = state.neighbors_vicinity.at(neighbor);
+//
+//                    v.computeCorrelationFactor(currentCountryState.border_length, neighbourCountryState.border_length);
+//                }
+//
+//                calculateCorrelationFactor = false;
+//            }
+
+            SIR res = state.current_state;
 
             float new_i = std::round(get_phase_penalty(res.phase) * new_infections() * precDivider) / precDivider;
 
@@ -241,7 +258,7 @@ class zhong_cell : public grid_cell<T, sir, Vicinity> {
             return res;
         }
         // It returns the delay to communicate cell's new state.
-        T output_delay(sir const &cell_state) const override {
+        T output_delay(SIR const &cell_state) const override {
             return 1;
         }
 
@@ -255,7 +272,7 @@ class zhong_cell : public grid_cell<T, sir, Vicinity> {
         }
 
         void check_valid_state() const {
-            sir init = state.current_state;
+            SIR init = state.current_state;
             float sum = init.susceptible;
             assert(init.susceptible >= 0 && init.susceptible <= 1);
             for(int i=0; i < init.num_inf; i++) {
@@ -271,7 +288,7 @@ class zhong_cell : public grid_cell<T, sir, Vicinity> {
 
         float new_infections() const {
             float inf = 0;
-            sir cstate = state.current_state;
+            SIR cstate = state.current_state;
 
             // internal infected
             for (int i = 0; i < cstate.num_inf; ++i) {
@@ -281,7 +298,7 @@ class zhong_cell : public grid_cell<T, sir, Vicinity> {
 
             // external infected
             for(auto neighbor: neighbors) {
-                sir nstate = state.neighbors_state.at(neighbor);
+                SIR nstate = state.neighbors_state.at(neighbor);
                 Vicinity v = state.neighbors_vicinity.at(neighbor);
 
                 for (int i = 0; i < nstate.num_inf; ++i) {

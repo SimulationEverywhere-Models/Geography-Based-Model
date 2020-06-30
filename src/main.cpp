@@ -68,13 +68,13 @@ int main(int argc, char ** argv) {
 
     Zhong_Coupled<TIME> test = Zhong_Coupled<TIME>("pandemic_hoya");
     std::string scenario_config_file_path = argv[1];
-    test.add_lattice_json(scenario_config_file_path);
+    test.add_cells_json(scenario_config_file_path);
     test.couple_cells();
 
     std::shared_ptr<cadmium::dynamic::modeling::coupled<TIME>> t = std::make_shared<Zhong_Coupled<TIME>>(test);
 
     cadmium::dynamic::engine::runner<TIME, logger_top> r(t, {0});
-    float sim_time = (argc > 2)? atof(argv[2]) : 500;
+    float sim_time = (argc > 2)? atof(argv[2]) : 50;
     r.run_until(sim_time);
     return 0;
 }
