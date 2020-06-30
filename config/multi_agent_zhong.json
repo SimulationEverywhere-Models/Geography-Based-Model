@@ -1,12 +1,10 @@
 {
   "scenario": 
   {
-      "shape": [50, 50],
-      "wrapped": true,
       "default_delay": "inertial",
-      "default_cell_type": "hoya",
+      "default_cell_type": "zhong",
   
-      "default_state": 
+      "default_state":
       {
           "cell_id": "DefaultCell",
           "population": 100,
@@ -14,16 +12,24 @@
           "infected": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
           "recovered": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
           "num_infected": 16,
-          "num_recovered": 30,
+          "num_recovered": 16,
           "initial_infected": 0,
           "border_length": 1,
           "land_area": 0,
           "neighborhood": []
       },
-  
+
+
+      "default_vicinity":
+      {
+            "cell_id": "DefaultVicinity",
+            "shared_border_length": 1,
+            "number_shared_roads": 1
+      },
+
       "default_config": 
       {
-          "hoya": 
+          "zhong":
           {
             "virulence": 0.6,
             "recovery": 0.4
@@ -35,25 +41,39 @@
   [
       {
           "cell_id": "Country1",
-          "susceptible": 0.7,
-          "infected": [0.3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-          "recovered": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-          "num_infected": 16,
-          "num_recovered": 30,
-          "initial_infected": 0,
-          "border_length": 100,
-          "land_area": 100,
+          "state":
+          {
+              "cell_id": "Country1",
+              "susceptible": 0.7,
+              "population": 100,
+              "infected": [0.3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+              "recovered": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+              "num_infected": 16,
+              "num_recovered": 16,
+              "initial_infected": 0.3,
+              "border_length": 100,
+              "land_area": 300
+          },
           "neighborhood":
           [
               {
                   "cell_id": "Country2",
-                  "shared_border_length": 500,
-                  "number_shared_roads": 5
+                  "vicinity":
+                  {
+                      "cell_id": "Country2",
+                      "shared_border_length": 500,
+                      "number_shared_roads": 5
+                  }
               },
+
               {
                   "cell_id": "Country3",
-                  "shared_border_length": 10,
-                  "number_shared_roads": 2
+                  "vicinity":
+                  {
+                      "cell_id": "Country3",
+                      "shared_border_length": 10,
+                      "number_shared_roads": 2
+                  }
               }
           ]
       },
@@ -63,45 +83,64 @@
           "infected": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
           "recovered": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
           "num_infected": 16,
-          "num_recovered": 30,
+          "num_recovered": 16,
           "initial_infected": 0,
           "border_length": 100,
           "land_area": 700,
           "neighborhood":
           [
               {
-                "cell_id": "Country1",
-                "shared_border_length": 500,
-                "number_shared_roads": 5
+                    "cell_id": "Country1",
+                    "vicinity":
+                    {
+                        "cell_id": "Country1",
+                        "shared_border_length": 500,
+                        "number_shared_roads": 5
+                    }
               },
+
+
               {
-                "cell_id": "Country3",
-                "shared_border_length": 20,
-                "number_shared_roads": 10
+                    "cell_id": "Country3",
+                    "vicinity":
+                    {
+                          "cell_id": "Country3",
+                          "shared_border_length": 20,
+                          "number_shared_roads": 10
+                    }
               }
           ]
       },
       {
-
+          "cell_id": "Country3",
           "susceptible": 1,
           "infected": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
           "recovered": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
           "num_infected": 16,
-          "num_recovered": 30,
+          "num_recovered": 16,
           "initial_infected": 0,
           "border_length": 50,
           "land_area": 30,
           "neighborhood":
           [
               {
-                "cell_id": "Country1",
-                "shared_border_length": 10,
-                "number_shared_roads": 2
+                    "cell_id": "Country1",
+                    "vicinity":
+                    {
+                        "cell_id": "Country1",
+                        "shared_border_length": 10,
+                        "number_shared_roads": 2
+                    }
               },
+
               {
-                "cell_id": "Country3",
-                "shared_border_length": 20,
-                "number_shared_roads": 10
+                  "cell_id": "Country2",
+                  "vicinity":
+                  {
+                      "cell_id": "Country2",
+                      "shared_border_length": 20,
+                      "number_shared_roads": 10
+                  }
               }
           ]
       }

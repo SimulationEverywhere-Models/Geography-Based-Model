@@ -12,7 +12,6 @@
 
 struct Vicinity
 {
-    Vicinity() = default;
 
     Vicinity(std::string cell_id, float shared_border_length, unsigned int number_shared_roads)
             :
@@ -23,9 +22,13 @@ struct Vicinity
 
     }
 
+    Vicinity(){}
+
     void computeCorrelationFactor(float border_length, float adjacent_border_length)
     {
-        correlationFactor = defaultCorrelationFactor(border_length, adjacent_border_length, shared_border_length, number_shared_roads);
+        correlationFactor = 1.0;
+
+     //   correlationFactor = defaultCorrelationFactor(border_length, adjacent_border_length, shared_border_length, number_shared_roads);
     }
 
     static float defaultCorrelationFactor(float border_length, float adjacent_border_length, float shared_border_length, unsigned int number_shared_roads)
@@ -58,8 +61,6 @@ struct Vicinity
 
     std::string cell_id;
     float correlationFactor;
-    float border_length;
-    float neighbour_border_length;
     unsigned int number_shared_roads;
     float shared_border_length;
 };
@@ -67,8 +68,6 @@ struct Vicinity
 void from_json(const nlohmann::json &json, Vicinity &vicinity)
 {
     json.at("cell_id").get_to(vicinity.cell_id);
-    json.at("border_length").get_to(vicinity.border_length);
-    json.at("neighbour_border_length").get_to(vicinity.neighbour_border_length);
     json.at("shared_border_length").get_to(vicinity.shared_border_length);
     json.at("number_shared_roads").get_to(vicinity.number_shared_roads);
 }

@@ -8,7 +8,7 @@
 #include <cmath>
 #include <iostream>
 #include <vector>
-#include <cadmium/celldevs/cell/grid_cell.hpp>
+#include <cadmium/celldevs/cell/cell.hpp>
 #include <iomanip>
 #include "Vicinity.h"
 #include "SIR.h"
@@ -124,7 +124,7 @@ std::ostream &operator << (std::ostream &os, const sir &x) {
 struct vr {
     float virulence;
     float recovery;
-    vr(): virulence(0.6), recovery(0.4) {}
+    vr(): virulence(0.6), recovery(0.01) {}
     vr(float v, float r): virulence(v), recovery(r) {}
 };
 
@@ -137,6 +137,9 @@ void from_json(const nlohmann::json& j, vr &v) {
 template <typename T>
     class zhong_cell : public cell<T, std::string, SIR, Vicinity> {
     public:
+
+            template<typename X>
+            using cell_unordered = std::unordered_map<std::string, X>;
 
             using cell<T, std::string, SIR, Vicinity>::simulation_clock;
             using cell<T, std::string, SIR, Vicinity>::state;
@@ -172,24 +175,16 @@ template <typename T>
         // user must define this function. It returns the next cell state and its corresponding timeout
         SIR local_computation() const override {
 
-//            static bool calculateCorrelationFactor = true; // Dont calculate correlation factor every loop
-//
-//            if(calculateCorrelationFactor)
-//            {
-//                SIR currentCountryState = state.current_state;
-//
-//                for(auto neighbor : neighbors)
-//                {
-//                    SIR neighbourCountryState = state.neighbors_state.at(neighbor);
-//                    Vicinity v = state.neighbors_vicinity.at(neighbor);
-//
-//                    v.computeCorrelationFactor(currentCountryState.border_length, neighbourCountryState.border_length);
-//                }
-//
-//                calculateCorrelationFactor = false;
-//            }
-
             SIR res = state.current_state;
+
+            for(auto neighbor : neighbors)
+            {
+                SIR neighbourCountryState = state.neighbors_state.at(neighbor);
+                Vicinity v = state.neighbors_vicinity.at(neighbor);
+
+                v.computeCorrelationFactor(res.border_length, neighbourCountryState.border_length);
+            }
+
 
             float new_i = std::round(get_phase_penalty(res.phase) * new_infections() * precDivider) / precDivider;
 
