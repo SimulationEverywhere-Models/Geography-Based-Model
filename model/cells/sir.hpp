@@ -2,8 +2,8 @@
 // Created by binybrion on 6/30/20.
 //
 
-#ifndef PANDEMIC_HOYA_2002_SIR_H
-#define PANDEMIC_HOYA_2002_SIR_H
+#ifndef PANDEMIC_HOYA_2002_SIR_HPP
+#define PANDEMIC_HOYA_2002_SIR_HPP
 
 
 #include <iostream>
@@ -12,6 +12,7 @@
 struct SIR
 {
     SIR(unsigned int pop, unsigned int phase, int num_inf, int num_rec, float initial_infected, float border_length, float land_area)
+    // TODO Are you using initial_infected? if not, remove it
             :
                 population(pop),
                 phase(phase),
@@ -72,7 +73,6 @@ struct SIR
         return neq;
     }
 
-    std::string cell_id;
     unsigned int population;
     unsigned int phase;
     int num_inf;
@@ -112,7 +112,6 @@ std::ostream &operator << (std::ostream &os, const SIR &sir)
 
 void from_json(const nlohmann::json &json, SIR &sir)
 {
-    json.at("cell_id").get_to(sir.cell_id);
     json.at("population").get_to(sir.population);
     json.at("susceptible").get_to(sir.susceptible);
     json.at("infected").get_to(sir.infected);
@@ -126,4 +125,4 @@ void from_json(const nlohmann::json &json, SIR &sir)
     sir.initialize();
 }
 
-#endif //PANDEMIC_HOYA_2002_SIR_H
+#endif //PANDEMIC_HOYA_2002_SIR_HPP

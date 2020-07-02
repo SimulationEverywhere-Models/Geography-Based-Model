@@ -2,16 +2,16 @@
 // Created by binybrion on 6/29/20.
 //
 
-#ifndef PANDEMIC_HOYA_2002_ZHONG_CELL_H
-#define PANDEMIC_HOYA_2002_ZHONG_CELL_H
+#ifndef PANDEMIC_HOYA_2002_ZHONG_CELL_HPP
+#define PANDEMIC_HOYA_2002_ZHONG_CELL_HPP
 
 #include <cmath>
 #include <iostream>
 #include <vector>
 #include <cadmium/celldevs/cell/cell.hpp>
 #include <iomanip>
-#include "Vicinity.h"
-#include "SIR.h"
+#include "vicinity.hpp"
+#include "sir.hpp"
 
 using namespace std;
 using namespace cadmium::celldevs;
@@ -19,6 +19,7 @@ using namespace cadmium::celldevs;
 /************************************/
 /******COMPLEX STATE STRUCTURE*******/
 /************************************/
+// TODO are you using this sir structure? If not, remove it
 struct sir {
     unsigned int population;
     unsigned int phase;
@@ -316,4 +317,4 @@ template <typename T>
         }
 };
 
-#endif //PANDEMIC_HOYA_2002_ZHONG_CELL_H
+#endif //PANDEMIC_HOYA_2002_ZHONG_CELL_HPP

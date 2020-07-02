@@ -32,6 +32,8 @@
 #include <nlohmann/json.hpp>
 #include <cadmium/celldevs/cell/grid_cell.hpp>
 
+// TODO are you using this? If not remove it
+
 using nlohmann::json;
 using namespace cadmium::celldevs;
 
