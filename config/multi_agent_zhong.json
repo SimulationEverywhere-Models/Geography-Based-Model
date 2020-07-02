@@ -7,9 +7,6 @@
             "susceptible": 1,
             "infected": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
             "recovered": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            "num_infected": 16,
-            "num_recovered": 16,
-            "initial_infected": 0,
             "border_length": 1,
             "land_area": 0
         },
@@ -33,9 +30,6 @@
                 "population": 100,
                 "infected": [0.3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                 "recovered": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                "num_infected": 16,
-                "num_recovered": 16,
-                "initial_infected": 0.3,
                 "border_length": 100,
                 "land_area": 300
             },
@@ -70,9 +64,6 @@
                 "population": 100,
                 "infected": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                 "recovered": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                "num_infected": 16,
-                "num_recovered": 16,
-                "initial_infected": 0,
                 "border_length": 100,
                 "land_area": 700
             },
@@ -107,9 +98,6 @@
                 "susceptible": 1,
                 "infected": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                 "recovered": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                "num_infected": 16,
-                "num_recovered": 16,
-                "initial_infected": 0,
                 "border_length": 50,
                 "land_area": 30
             },

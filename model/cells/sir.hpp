@@ -22,13 +22,12 @@ struct sir {
     float border_length;
     float land_area;
 
-    sir(unsigned int pop, unsigned int phase, int num_inf, int num_rec, float initial_infected, float border_length, float land_area)
+    sir(unsigned int pop, unsigned int phase, std::vector<float> infected, std::vector<float> recovered, float border_length, float land_area)
             :
-                initial_infected{initial_infected},
-                population(pop),
-                phase(phase),
-                num_inf(num_inf),
-                num_rec(num_rec),
+                population{pop},
+                phase{phase},
+                infected{std::move(infected)},
+                recovered{std::move(recovered)},
                 deaths{0},
                 border_length{border_length},
                 land_area{land_area} {
@@ -37,18 +36,19 @@ struct sir {
 
     sir()
             :
-            population{0},
-            phase{0},
-            susceptible{1} {
+                population{0},
+                phase{0},
+                susceptible{1} {
 
     }
 
     void initialize() {
-        infected.push_back(initial_infected);
 
-        infected.insert(infected.end(), num_inf, 0);
+        initial_infected = infected.front();
 
-        recovered.insert(recovered.end(), num_rec, 0);
+        num_inf = infected.size();
+
+        num_rec = recovered.size();
 
         susceptible = 1 - initial_infected;
     }
@@ -105,9 +105,6 @@ void from_json(const nlohmann::json &json, sir &sir) {
     json.at("susceptible").get_to(sir.susceptible);
     json.at("infected").get_to(sir.infected);
     json.at("recovered").get_to(sir.recovered);
-    json.at("num_infected").get_to(sir.num_inf);
-    json.at("num_recovered").get_to(sir.num_rec);
-    json.at("initial_infected").get_to(sir.initial_infected);
     json.at("border_length").get_to(sir.border_length);
     json.at("land_area").get_to(sir.land_area);
 
