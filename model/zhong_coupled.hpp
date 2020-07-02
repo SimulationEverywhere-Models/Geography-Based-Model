@@ -10,19 +10,19 @@
 #include "cells/zhong_cell.hpp"
 
 template <typename T>
-class zhong_coupled : public cadmium::celldevs::cells_coupled<T, std::string, SIR, Vicinity>
+class zhong_coupled : public cadmium::celldevs::cells_coupled<T, std::string, sir, vicinity>
 {
     public:
 
-        explicit zhong_coupled(std::string const &id) : cells_coupled<T, std::string, SIR, Vicinity>(id)
+        explicit zhong_coupled(std::string const &id) : cells_coupled<T, std::string, sir, vicinity>(id)
         {}
 
         template<typename X>
         using cell_unordered = std::unordered_map<std::string, X>;
 
         void add_cell_json(std::string const &cell_type, std::string const &cell_id,
-                           cell_unordered<Vicinity> const &neighborhood,
-                           SIR initial_state,
+                           cell_unordered<vicinity> const &neighborhood,
+                           sir initial_state,
                            std::string const &delay_id,
                            nlohmann::json const &config) override
         {
