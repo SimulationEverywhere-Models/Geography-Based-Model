@@ -105,8 +105,6 @@ void from_json(const nlohmann::json &json, sir &sir) {
     json.at("susceptible").get_to(sir.susceptible);
     json.at("infected").get_to(sir.infected);
     json.at("recovered").get_to(sir.recovered);
-    json.at("border_length").get_to(sir.border_length);
-    json.at("land_area").get_to(sir.land_area);
 
     sir.initialize();
 }

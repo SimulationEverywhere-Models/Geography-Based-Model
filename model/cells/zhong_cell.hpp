@@ -57,7 +57,7 @@ public:
     float virulencyRates[NUM_PHASES][INF_NUM] = {{0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15}};
     float recoveryRates[NUM_PHASES][INF_NUM-1] = {{0.07, 0.07, 0.07, 0.07, 0.07, 0.07, 0.07, 0.07, 0.07, 0.07, 0.07, 0.07, 0.07, 0.07, 0.07}};
     float mortalityRates[NUM_PHASES][INF_NUM] = {{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}};
-    float movilityRates[NUM_PHASES][INF_NUM] = {{0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6}};
+    float mobilityRates[NUM_PHASES][INF_NUM] = {{0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6}};
 
     zhong_cell() : cell<T, std::string, sir, vicinity>() {}
 
@@ -71,14 +71,6 @@ public:
     sir local_computation() const override {
 
         sir res = state.current_state;
-
-        for(auto neighbor : neighbors) {
-            sir neighbourCountryState = state.neighbors_state.at(neighbor);
-            vicinity v = state.neighbors_vicinity.at(neighbor);
-
-            v.computeCorrelationFactor(res.border_length, neighbourCountryState.border_length);
-        }
-
 
         float new_i = std::round(get_phase_penalty(res.phase) * new_infections() * precDivider) / precDivider;
 
@@ -158,9 +150,7 @@ public:
             sir nstate = state.neighbors_state.at(neighbor);
             vicinity v = state.neighbors_vicinity.at(neighbor);
 
-            float correlation_factor = v.computeCorrelationFactor(cstate.border_length, nstate.border_length);
-
-            assert(correlation_factor >= 0 && correlation_factor <= 1);
+            assert(v.correlation >= 0 && v.correlation <= 1);
         }
     }
 
@@ -194,10 +184,8 @@ public:
             sir nstate = state.neighbors_state.at(neighbor);
             vicinity v = state.neighbors_vicinity.at(neighbor);
 
-            float correlation_factor = v.computeCorrelationFactor(cstate.border_length, nstate.border_length);
-
             for (int i = 0; i < nstate.num_inf; ++i) {
-                inf += correlation_factor * movilityRates[cstate.phase][i] * cstate.susceptible *
+                inf += v.correlation * mobilityRates[cstate.phase][i] * cstate.susceptible *
                        ((float)nstate.population / (float)cstate.population) *
                        virulencyRates[cstate.phase][i] * nstate.infected[i];
             }
