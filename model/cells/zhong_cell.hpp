@@ -12,22 +12,10 @@
 #include <iomanip>
 #include "vicinity.hpp"
 #include "sir.hpp"
+#include "rates_configuration.h"
 
 using namespace std;
 using namespace cadmium::celldevs;
-
-struct vr {
-    float virulence;
-    float recovery;
-    vr(): virulence(0.6), recovery(0.01) {}
-    vr(float v, float r): virulence(v), recovery(r) {}
-};
-
-void from_json(const nlohmann::json& j, vr &v) {
-    j.at("virulence").get_to(v.virulence);
-    j.at("recovery").get_to(v.recovery);
-}
-
 
 template <typename T>
 class zhong_cell : public cell<T, std::string, sir, vicinity> {
@@ -40,9 +28,10 @@ public:
     using cell<T, std::string, sir, vicinity>::state;
     using cell<T, std::string, sir, vicinity>::neighbors;
 
-    using config_type = vr;
-    float virulence;
-    float recovery;
+    using config_type = rates_configurations;
+    std::vector<float> virulency_rates;
+    std::vector<float> recovery_rates;
+    std::vector<float> mobility_rates;
 
     // This is the number of phases of a lock down.
     static const int NUM_PHASES = 1;
@@ -53,18 +42,14 @@ public:
     float disobedient = 0.0;
     int precDivider = 1000;
 
-    // For every day of the lock down and for every day that a person is infected, assign various values.
-    float virulencyRates[NUM_PHASES][INF_NUM] = {{0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15}};
-    float recoveryRates[NUM_PHASES][INF_NUM-1] = {{0.07, 0.07, 0.07, 0.07, 0.07, 0.07, 0.07, 0.07, 0.07, 0.07, 0.07, 0.07, 0.07, 0.07, 0.07}};
-    float mortalityRates[NUM_PHASES][INF_NUM] = {{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}};
-    float mobilityRates[NUM_PHASES][INF_NUM] = {{0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6}};
-
     zhong_cell() : cell<T, std::string, sir, vicinity>() {}
 
-    zhong_cell(std::string const &cell_id, cell_unordered<vicinity> const &neighborhood, sir initial_state, std::string const &delay_id, vr config) :
+    zhong_cell(std::string const &cell_id, cell_unordered<vicinity> const &neighborhood, sir initial_state, std::string const &delay_id, rates_configurations config) :
     cell<T, std::string, sir, vicinity>(cell_id, neighborhood, initial_state, delay_id) {
-        virulence = config.virulence;
-        recovery = config.recovery;
+
+        virulency_rates = std::move(config.virulency_rates);
+        recovery_rates = std::move(config.recovery_rates);
+        mobility_rates = std::move(config.mobility_rates);
     }
 
     // user must define this function. It returns the next cell state and its corresponding timeout
@@ -82,7 +67,7 @@ public:
         // Equation 6e
         for (int i = 0; i < res.num_inf - 1; ++i) {
             // Calculate all of the new recovered- for every day that a population is infected, some recover.
-            new_r += std::round(res.infected[i] * recoveryRates[res.phase][i] * precDivider) / precDivider;
+            new_r += std::round(res.infected[i] * recovery_rates[i] * precDivider) / precDivider;
         }
 
         // Equation 6b is done through several steps, every time new_s is subtracted from
@@ -96,7 +81,7 @@ public:
 
             // A proportion of the previous day's infection recovers, leading to a new proportion
             // of the population that is currently infected at the current day of infection
-            curr_inf *= 1 - recoveryRates[res.phase][i-1];
+            curr_inf *= 1 - recovery_rates[i-1];
 
             res.infected[i] = std::round(curr_inf * precDivider) / precDivider;
 
@@ -175,7 +160,7 @@ public:
 
         // internal infected
         for (int i = 0; i < cstate.num_inf; ++i) {
-            inf += virulencyRates[cstate.phase][i] * cstate.infected[i];
+            inf += virulency_rates[i] * cstate.infected[i];
         }
         inf *= cstate.susceptible;
 
@@ -185,9 +170,9 @@ public:
             vicinity v = state.neighbors_vicinity.at(neighbor);
 
             for (int i = 0; i < nstate.num_inf; ++i) {
-                inf += v.correlation * mobilityRates[cstate.phase][i] * cstate.susceptible *
+                inf += v.correlation * mobility_rates[i] * cstate.susceptible *
                        ((float)nstate.population / (float)cstate.population) *
-                       virulencyRates[cstate.phase][i] * nstate.infected[i];
+                       virulency_rates[i] * nstate.infected[i];
             }
         }
 
