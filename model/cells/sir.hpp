@@ -9,7 +9,7 @@
 #include <nlohmann/json.hpp>
 
 struct sir {
-    unsigned int population;
+    unsigned int population_density;
     unsigned int phase;
     int num_inf;
     int num_rec;
@@ -17,18 +17,16 @@ struct sir {
     float initial_infected;
     std::vector<float> infected;
     std::vector<float> recovered;
-    float deaths;
 
     float border_length;
     float land_area;
 
-    sir(unsigned int pop, unsigned int phase, std::vector<float> infected, std::vector<float> recovered, float border_length, float land_area)
+    sir(unsigned int popDensity, unsigned int phase, std::vector<float> infected, std::vector<float> recovered, float border_length, float land_area)
             :
-                population{pop},
+                population_density{popDensity},
                 phase{phase},
                 infected{std::move(infected)},
                 recovered{std::move(recovered)},
-                deaths{0},
                 border_length{border_length},
                 land_area{land_area} {
         initialize();
@@ -36,7 +34,7 @@ struct sir {
 
     sir()
             :
-                population{0},
+                population_density{0},
                 phase{0},
                 susceptible{1} {
 
@@ -54,10 +52,9 @@ struct sir {
     }
 
     bool operator!=(const sir &other) {
-        bool neq = population != other.population ||
+        bool neq = population_density != other.population_density ||
                    phase != other.phase ||
-                   susceptible != other.susceptible ||
-                   deaths != other.deaths;
+                   susceptible != other.susceptible;
 
         int i = 0;
 
@@ -82,7 +79,7 @@ struct sir {
 bool operator<(const sir &lhs, const sir &rhs) { return true; }
 
 std::ostream &operator<<(std::ostream &os, const sir &sir) {
-    os << "<" << sir.population << "," << sir.phase << "," << sir.num_inf << "," << sir.num_rec << ","
+    os << "<" << sir.population_density << "," << sir.phase << "," << sir.num_inf << "," << sir.num_rec << ","
        << sir.susceptible;
 
     for (auto infected : sir.infected) {
@@ -93,15 +90,13 @@ std::ostream &operator<<(std::ostream &os, const sir &sir) {
         os << "," << recovered;
     }
 
-    os << "," << sir.deaths;
-
     os << ">";
 
     return os;
 }
 
 void from_json(const nlohmann::json &json, sir &sir) {
-    json.at("population").get_to(sir.population);
+    json.at("population_density").get_to(sir.population_density);
     json.at("susceptible").get_to(sir.susceptible);
     json.at("infected").get_to(sir.infected);
     json.at("recovered").get_to(sir.recovered);

@@ -3,7 +3,7 @@
         "default_delay": "inertial",
         "default_cell_type": "zhong",
         "default_state": {
-            "population": 100,
+            "population_density": 1,
             "susceptible": 1,
             "infected": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
             "recovered": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
@@ -31,7 +31,7 @@
             "cell_id": "Country1",
             "state": {
                 "susceptible": 0.7,
-                "population": 100,
+                "population_density": 1,
                 "infected": [0.3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                 "recovered": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
             },
@@ -60,7 +60,7 @@
             "cell_id": "Country2",
             "state": {
                 "susceptible": 1,
-                "population": 100,
+                "population_density": 1,
                 "infected": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                 "recovered": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
             },
@@ -88,7 +88,7 @@
         {
             "cell_id": "Country3",
             "state": {
-                "population": 100,
+                "population_density": 1,
                 "susceptible": 1,
                 "infected": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                 "recovered": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]

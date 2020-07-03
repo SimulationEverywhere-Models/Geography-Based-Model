@@ -94,7 +94,7 @@ public:
         // The people on the first day of infection are equal to the number of infections from the susceptible population
         res.infected[0] = new_i;
 
-        // The susceptible population does not include
+        // The susceptible population does not include infected individuals
         new_s -= new_i;
 
         // Equation 6a
@@ -162,7 +162,9 @@ public:
 
         // internal infected
         for (int i = 0; i < cstate.num_inf; ++i) {
-            inf += virulency_rates[cstate.phase][i] * cstate.infected[i];
+            inf +=   virulency_rates[cstate.phase][i] * // variable lambda
+                     cstate.susceptible * cstate.population_density * // variable Rho(i)
+                     cstate.susceptible * cstate.infected[i]; // variables Si and Ii, respectively
         }
         inf *= cstate.susceptible;
 
@@ -172,9 +174,11 @@ public:
             vicinity v = state.neighbors_vicinity.at(neighbor);
 
             for (int i = 0; i < nstate.num_inf; ++i) {
-                inf += v.correlation * mobility_rates[cstate.phase][i] * cstate.susceptible *
-                       ((float)nstate.population / (float)cstate.population) *
-                       virulency_rates[cstate.phase][i] * nstate.infected[i];
+
+                inf +=  v.correlation * mobility_rates[cstate.phase][i] * // variable Cij
+                        virulency_rates[cstate.phase][i] * // variable lambda
+                        cstate.susceptible * cstate.population_density * // variable Rho(i)
+                        cstate.susceptible * nstate.infected[i]; // variables Si and Ij, respectively
             }
         }
 
