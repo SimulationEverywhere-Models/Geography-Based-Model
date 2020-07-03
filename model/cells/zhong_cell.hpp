@@ -29,15 +29,12 @@ public:
     using cell<T, std::string, sir, vicinity>::neighbors;
 
     using config_type = rates_configurations;
-    std::vector<float> virulency_rates;
-    std::vector<float> recovery_rates;
-    std::vector<float> mobility_rates;
 
-    // This is the number of phases of a lock down.
-    static const int NUM_PHASES = 1;
+    using PhaseRates = std::vector<float>;
 
-    // This is the sum of all of the infected days (incubation, actual infection, and latency).
-    static const int INF_NUM = 16;
+    std::vector<PhaseRates> virulency_rates;
+    std::vector<PhaseRates> recovery_rates;
+    std::vector<PhaseRates> mobility_rates;
 
     float disobedient = 0.0;
     int precDivider = 1000;
@@ -50,6 +47,11 @@ public:
         virulency_rates = std::move(config.virulency_rates);
         recovery_rates = std::move(config.recovery_rates);
         mobility_rates = std::move(config.mobility_rates);
+
+        assert(virulency_rates.size() == recovery_rates.size() &&
+               virulency_rates.size() == mobility_rates.size() &&
+               recovery_rates.size() == mobility_rates.size() &&
+               "\n\nThere must be an equal number of phases between all configuration rates.\n\n");
     }
 
     // user must define this function. It returns the next cell state and its corresponding timeout
@@ -67,7 +69,7 @@ public:
         // Equation 6e
         for (int i = 0; i < res.num_inf - 1; ++i) {
             // Calculate all of the new recovered- for every day that a population is infected, some recover.
-            new_r += std::round(res.infected[i] * recovery_rates[i] * precDivider) / precDivider;
+            new_r += std::round(res.infected[i] * recovery_rates[res.phase][i] * precDivider) / precDivider;
         }
 
         // Equation 6b is done through several steps, every time new_s is subtracted from
@@ -81,7 +83,7 @@ public:
 
             // A proportion of the previous day's infection recovers, leading to a new proportion
             // of the population that is currently infected at the current day of infection
-            curr_inf *= 1 - recovery_rates[i-1];
+            curr_inf *= 1 - recovery_rates[res.phase][i-1];
 
             res.infected[i] = std::round(curr_inf * precDivider) / precDivider;
 
@@ -160,7 +162,7 @@ public:
 
         // internal infected
         for (int i = 0; i < cstate.num_inf; ++i) {
-            inf += virulency_rates[i] * cstate.infected[i];
+            inf += virulency_rates[cstate.phase][i] * cstate.infected[i];
         }
         inf *= cstate.susceptible;
 
@@ -170,9 +172,9 @@ public:
             vicinity v = state.neighbors_vicinity.at(neighbor);
 
             for (int i = 0; i < nstate.num_inf; ++i) {
-                inf += v.correlation * mobility_rates[i] * cstate.susceptible *
+                inf += v.correlation * mobility_rates[cstate.phase][i] * cstate.susceptible *
                        ((float)nstate.population / (float)cstate.population) *
-                       virulency_rates[i] * nstate.infected[i];
+                       virulency_rates[cstate.phase][i] * nstate.infected[i];
             }
         }
 
@@ -180,7 +182,8 @@ public:
     }
 
     float get_phase_penalty(unsigned int phase) const {
-        assert(0 <= phase && phase < NUM_PHASES);
+        // All rates vector have the same number of phases, so it doesn't matter which one is used here
+        assert(0 <= phase && phase < virulency_rates.size());
         return 1;
     }
 

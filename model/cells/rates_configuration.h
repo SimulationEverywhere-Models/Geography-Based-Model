@@ -9,9 +9,9 @@
 
 struct rates_configurations
 {
-    std::vector<float> virulency_rates;
-    std::vector<float> recovery_rates;
-    std::vector<float> mobility_rates;
+    std::vector<std::vector<float>> virulency_rates;
+    std::vector<std::vector<float>> recovery_rates;
+    std::vector<std::vector<float>> mobility_rates;
 };
 
 void from_json(const nlohmann::json& j, rates_configurations &v) {
