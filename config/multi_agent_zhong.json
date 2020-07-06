@@ -4,17 +4,18 @@
         "default_cell_type": "zhong",
         "default_state": {
             "population_density": 1,
-            "susceptible": 1,
             "infected": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
             "recovered": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         },
         "default_vicinity": {
-            "correlation": 0
+            "correlation": 1
         },
         "default_config": {
             "zhong": {
 
-                "virulency_rates": [[0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15],
+                "disobedient": 0.0,
+                "precision": 1000,
+                "virulence_rates": [[0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15],
                                     [0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15]],
 
                 "recovery_rates": [[0.07, 0.07, 0.07, 0.07, 0.07, 0.07, 0.07, 0.07, 0.07, 0.07, 0.07, 0.07, 0.07, 0.07, 0.07],
@@ -30,17 +31,13 @@
         {
             "cell_id": "Country1",
             "state": {
-                "susceptible": 0.7,
                 "population_density": 1,
                 "infected": [0.3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                 "recovered": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
             },
             "neighborhood": [
                 {
-                    "cell_id": "Country1",
-                    "vicinity": {
-                       "correlation": 1
-                    }
+                    "cell_id": "Country1"
                 },
                 {
                     "cell_id": "Country2",
@@ -58,12 +55,6 @@
         },
         {
             "cell_id": "Country2",
-            "state": {
-                "susceptible": 1,
-                "population_density": 1,
-                "infected": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                "recovered": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-            },
             "neighborhood": [
                 {
                     "cell_id": "Country1",
@@ -72,10 +63,7 @@
                     }
                 },
                 {
-                    "cell_id": "Country2",
-                    "vicinity": {
-                      "correlation": 1
-                    }
+                    "cell_id": "Country2"
                 },
                 {
                     "cell_id": "Country3",
@@ -87,12 +75,6 @@
         },
         {
             "cell_id": "Country3",
-            "state": {
-                "population_density": 1,
-                "susceptible": 1,
-                "infected": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                "recovered": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-            },
             "neighborhood": [
                 {
                     "cell_id": "Country1",
@@ -107,10 +89,7 @@
                     }
                 },
                 {
-                    "cell_id": "Country3",
-                    "vicinity": {
-                        "correlation": 1
-                    }
+                    "cell_id": "Country3"
                 }
             ]
         }

@@ -12,7 +12,7 @@
 #include <iomanip>
 #include "vicinity.hpp"
 #include "sir.hpp"
-#include "rates_configuration.h"
+#include "simulation_configuration.hpp"
 
 using namespace std;
 using namespace cadmium::celldevs;
@@ -28,29 +28,31 @@ public:
     using cell<T, std::string, sir, vicinity>::state;
     using cell<T, std::string, sir, vicinity>::neighbors;
 
-    using config_type = rates_configurations;
+    using config_type = simulation_configuration;
 
     using PhaseRates = std::vector<float>;
 
-    std::vector<PhaseRates> virulency_rates;
+    std::vector<PhaseRates> virulence_rates;
     std::vector<PhaseRates> recovery_rates;
     std::vector<PhaseRates> mobility_rates;
 
-    float disobedient = 0.0;
-    int precDivider = 1000;
+    float disobedient;
+    int precDivider;
 
     zhong_cell() : cell<T, std::string, sir, vicinity>() {}
 
-    zhong_cell(std::string const &cell_id, cell_unordered<vicinity> const &neighborhood, sir initial_state, std::string const &delay_id, rates_configurations config) :
+    zhong_cell(std::string const &cell_id, cell_unordered<vicinity> const &neighborhood, sir initial_state, std::string const &delay_id, simulation_configuration config) :
     cell<T, std::string, sir, vicinity>(cell_id, neighborhood, initial_state, delay_id) {
 
-        virulency_rates = std::move(config.virulency_rates);
+        virulence_rates = std::move(config.virulence_rates);
         recovery_rates = std::move(config.recovery_rates);
         mobility_rates = std::move(config.mobility_rates);
 
-        assert(virulency_rates.size() == recovery_rates.size() &&
-               virulency_rates.size() == mobility_rates.size() &&
-               recovery_rates.size() == mobility_rates.size() &&
+        disobedient = config.disobedient;
+        precDivider = config.precision;
+
+        assert(virulence_rates.size() == recovery_rates.size() &&
+                       virulence_rates.size() == mobility_rates.size() &&
                "\n\nThere must be an equal number of phases between all configuration rates.\n\n");
     }
 
@@ -62,12 +64,12 @@ public:
         float new_i = std::round(get_phase_penalty(res.phase) * new_infections() * precDivider) / precDivider;
 
         // Of the population that is on the last day of the infection, they are now considered recovered.
-        float new_r = res.infected[res.num_inf-1];
+        float new_r = res.infected[res.get_num_infected()-1];
 
         float new_s = 1;
 
         // Equation 6e
-        for (int i = 0; i < res.num_inf - 1; ++i) {
+        for (int i = 0; i < res.get_num_infected() - 1; ++i) {
             // Calculate all of the new recovered- for every day that a population is infected, some recover.
             new_r += std::round(res.infected[i] * recovery_rates[res.phase][i] * precDivider) / precDivider;
         }
@@ -75,7 +77,7 @@ public:
         // Equation 6b is done through several steps, every time new_s is subtracted from
 
         // Equation 6d
-        for (int i = res.num_inf - 1; i > 0; --i) {
+        for (int i = res.get_num_infected() - 1; i > 0; --i) {
             // *** Calculate proportion of infected on a given day of the infection ***
 
             // The previous day of infection
@@ -98,7 +100,7 @@ public:
         new_s -= new_i;
 
         // Equation 6a
-        for (int i = res.num_rec - 1; i > 0; --i)
+        for (int i = res.get_num_recovered() - 1; i > 0; --i)
         {
             // Each day of the recovered is the value of the previous day. The population on the last day is
             // now susceptible; this is implicitly done already as the susceptible value was set to 1.0 and the
@@ -145,11 +147,11 @@ public:
         sir init = state.current_state;
         float sum = init.susceptible;
         assert(init.susceptible >= 0 && init.susceptible <= 1);
-        for(int i=0; i < init.num_inf; i++) {
+        for(int i=0; i < init.get_num_infected(); i++) {
             assert(init.infected[i] >= 0 && init.infected[i] <= 1);
             sum += init.infected[i];
         }
-        for(int i=0; i < init.num_rec; i++) {
+        for(int i=0; i < init.get_num_recovered(); i++) {
             assert(init.recovered[i] >= 0 && init.recovered[i] <= 1);
             sum += init.recovered[i];
         }
@@ -160,23 +162,15 @@ public:
         float inf = 0;
         sir cstate = state.current_state;
 
-        // internal infected
-        for (int i = 0; i < cstate.num_inf; ++i) {
-            inf +=   virulency_rates[cstate.phase][i] * // variable lambda
-                     cstate.susceptible * cstate.population_density * // variable Rho(i)
-                     cstate.susceptible * cstate.infected[i]; // variables Si and Ii, respectively
-        }
-        inf *= cstate.susceptible;
-
         // external infected
         for(auto neighbor: neighbors) {
             sir nstate = state.neighbors_state.at(neighbor);
             vicinity v = state.neighbors_vicinity.at(neighbor);
 
-            for (int i = 0; i < nstate.num_inf; ++i) {
+            for (int i = 0; i < nstate.get_num_infected(); ++i) {
 
                 inf +=  v.correlation * mobility_rates[cstate.phase][i] * // variable Cij
-                        virulency_rates[cstate.phase][i] * // variable lambda
+                        virulence_rates[cstate.phase][i] * // variable lambda
                         cstate.susceptible * cstate.population_density * // variable Rho(i)
                         cstate.susceptible * nstate.infected[i]; // variables Si and Ij, respectively
             }
@@ -187,7 +181,7 @@ public:
 
     float get_phase_penalty(unsigned int phase) const {
         // All rates vector have the same number of phases, so it doesn't matter which one is used here
-        assert(0 <= phase && phase < virulency_rates.size());
+        assert(0 <= phase && phase < virulence_rates.size());
         return 1;
     }
 

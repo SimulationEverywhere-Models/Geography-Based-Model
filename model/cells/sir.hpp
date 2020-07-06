@@ -11,15 +11,12 @@
 struct sir {
     unsigned int population_density;
     unsigned int phase;
-    int num_inf;
-    int num_rec;
-    float susceptible;
-    float initial_infected;
     std::vector<float> infected;
     std::vector<float> recovered;
 
     float border_length;
     float land_area;
+    float susceptible;
 
     sir(unsigned int popDensity, unsigned int phase, std::vector<float> infected, std::vector<float> recovered, float border_length, float land_area)
             :
@@ -29,57 +26,40 @@ struct sir {
                 recovered{std::move(recovered)},
                 border_length{border_length},
                 land_area{land_area} {
-        initialize();
+        susceptible = 1.0f - infected.front();
+
     }
 
     sir()
             :
                 population_density{0},
-                phase{0},
-                susceptible{1} {
+                phase{0} {
 
     }
 
-    void initialize() {
-
-        initial_infected = infected.front();
-
-        num_inf = infected.size();
-
-        num_rec = recovered.size();
-
-        susceptible = 1 - initial_infected;
+    unsigned int get_num_infected() const
+    {
+        return infected.size();
     }
 
-    bool operator!=(const sir &other) {
+    unsigned int get_num_recovered() const
+    {
+        return recovered.size();
+    }
+
+    bool operator!=(const sir &other) const {
         bool neq = population_density != other.population_density ||
                    phase != other.phase ||
                    susceptible != other.susceptible;
 
-        int i = 0;
-
-        while (!neq && i < num_inf) {
-            neq = infected[i] != other.infected[i];
-
-            i += 1;
-        }
-
-        i = 0;
-
-        while (!neq && i < num_rec) {
-            neq = recovered[i] != other.recovered[i];
-
-            i += 1;
-        }
-
-        return neq;
+        return neq || (infected != other.infected) || (recovered != other.recovered);
     }
 };
 
 bool operator<(const sir &lhs, const sir &rhs) { return true; }
 
 std::ostream &operator<<(std::ostream &os, const sir &sir) {
-    os << "<" << sir.population_density << "," << sir.phase << "," << sir.num_inf << "," << sir.num_rec << ","
+    os << "<" << sir.population_density << "," << sir.phase << "," << sir.get_num_infected() << "," << sir.get_num_recovered() << ","
        << sir.susceptible;
 
     for (auto infected : sir.infected) {
@@ -97,11 +77,11 @@ std::ostream &operator<<(std::ostream &os, const sir &sir) {
 
 void from_json(const nlohmann::json &json, sir &sir) {
     json.at("population_density").get_to(sir.population_density);
-    json.at("susceptible").get_to(sir.susceptible);
     json.at("infected").get_to(sir.infected);
     json.at("recovered").get_to(sir.recovered);
 
-    sir.initialize();
+    // Ensure that this variable is initialized as the default constructor is used here.
+    sir.susceptible = 1.0f - sir.infected.front();
 }
 
 #endif //PANDEMIC_HOYA_2002_SIR_HPP
