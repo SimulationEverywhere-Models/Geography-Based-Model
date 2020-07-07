@@ -64,7 +64,7 @@ public:
         float new_i = std::round(get_phase_penalty(res.phase) * new_infections() * precDivider) / precDivider;
 
         // Of the population that is on the last day of the infection, they are now considered recovered.
-        float new_r = res.infected[res.get_num_infected()-1];
+        float new_r = res.infected.back();
 
         float new_s = 1;
 
