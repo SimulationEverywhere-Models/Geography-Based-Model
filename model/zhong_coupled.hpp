@@ -2,27 +2,27 @@
 // Created by binybrion on 6/29/20.
 //
 
-#ifndef PANDEMIC_HOYA_2002_ZHONG_COUPLED_H
-#define PANDEMIC_HOYA_2002_ZHONG_COUPLED_H
+#ifndef PANDEMIC_HOYA_2002_ZHONG_COUPLED_HPP
+#define PANDEMIC_HOYA_2002_ZHONG_COUPLED_HPP
 
 #include <nlohmann/json.hpp>
 #include <cadmium/celldevs/coupled/cells_coupled.hpp>
-#include "cells/Zhong_Cell.h"
+#include "cells/zhong_cell.hpp"
 
 template <typename T>
-class Zhong_Coupled : public cadmium::celldevs::cells_coupled<T, std::string, SIR, Vicinity>
+class zhong_coupled : public cadmium::celldevs::cells_coupled<T, std::string, sir, vicinity>
 {
     public:
 
-        explicit Zhong_Coupled(std::string const &id) : cells_coupled<T, std::string, SIR, Vicinity>(id)
+        explicit zhong_coupled(std::string const &id) : cells_coupled<T, std::string, sir, vicinity>(id)
         {}
 
         template<typename X>
         using cell_unordered = std::unordered_map<std::string, X>;
 
         void add_cell_json(std::string const &cell_type, std::string const &cell_id,
-                           cell_unordered<Vicinity> const &neighborhood,
-                           SIR initial_state,
+                           cell_unordered<vicinity> const &neighborhood,
+                           sir initial_state,
                            std::string const &delay_id,
                            nlohmann::json const &config) override
         {
@@ -34,4 +34,4 @@ class Zhong_Coupled : public cadmium::celldevs::cells_coupled<T, std::string, SI
         }
 };
 
-#endif //PANDEMIC_HOYA_2002_ZHONG_COUPLED_H
+#endif //PANDEMIC_HOYA_2002_ZHONG_COUPLED_HPP
