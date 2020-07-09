@@ -11,9 +11,9 @@
 
 struct vicinity
 {
-    float correlation = 1.0f;
+    double correlation = 1.0f;
 
-    explicit vicinity(float correlation) : correlation{correlation} {}
+    explicit vicinity(double correlation) : correlation{correlation} {}
 
     vicinity(){}
 };

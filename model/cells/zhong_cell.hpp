@@ -30,13 +30,16 @@ public:
 
     using config_type = simulation_configuration;
 
-    using PhaseRates = std::vector<float>;
+    using phase_rates =
+                        std::vector<            // The current phase
+                        std::vector<            // The age sub_division
+                        std::vector<double>>>;   // The stage of infection
 
-    std::vector<PhaseRates> virulence_rates;
-    std::vector<PhaseRates> recovery_rates;
-    std::vector<PhaseRates> mobility_rates;
+    phase_rates virulence_rates;
+    phase_rates recovery_rates;
+    phase_rates mobility_rates;
 
-    float disobedient;
+    double disobedient;
     int precDivider;
 
     zhong_cell() : cell<T, std::string, sir, vicinity>() {}
@@ -61,37 +64,56 @@ public:
 
         sir res = state.current_state;
 
-        float new_i = std::round(get_phase_penalty(res.phase) * new_infections() * precDivider) / precDivider;
+        double new_i = std::round(get_phase_penalty(res.phase) * new_infections() * precDivider) / precDivider;
 
         // Of the population that is on the last day of the infection, they are now considered recovered.
-        float new_r = res.infected.back();
+        double new_r = res.infected.back();
 
-        float new_s = 1;
+        double new_s = 1;
 
         // Equation 6e
-        for (int i = 0; i < res.get_num_infected() - 1; ++i) {
-            // Calculate all of the new recovered- for every day that a population is infected, some recover.
-            new_r += std::round(res.infected[i] * recovery_rates[res.phase][i] * precDivider) / precDivider;
+        for(int age_sub_division = 0; age_sub_division < res.age_divided_populations.size(); ++age_sub_division) {
+            for (int i = 0; i < res.get_num_infected() - 1; ++i) {
+                // Calculate all of the new recovered- for every day that a population is infected, some recover.
+
+                new_r += std::round(res.age_divided_populations[age_sub_division] * res.infected[i] * recovery_rates[res.phase][age_sub_division][i] * precDivider) / precDivider;;
+            }
         }
 
         // Equation 6b is done through several steps, every time new_s is subtracted from
 
+
         // Equation 6d
-        for (int i = res.get_num_infected() - 1; i > 0; --i) {
-            // *** Calculate proportion of infected on a given day of the infection ***
 
-            // The previous day of infection
-            float curr_inf = res.infected[i-1];
+        // The infections have to be updated only after all age group infection calculations are done; otherwise iterations
+        // after the first iteration will use invalid infected values. The first infection stage will have the value of new_i,
+        // so one less infection states needs to be kept tracked of.
+        std::vector<double> new_infections(res.get_num_infected() - 1, 0.0f);
 
-            // A proportion of the previous day's infection recovers, leading to a new proportion
-            // of the population that is currently infected at the current day of infection
-            curr_inf *= 1 - recovery_rates[res.phase][i-1];
+        for(int age_sub_division = 0; age_sub_division < res.age_divided_populations.size(); ++age_sub_division) {
+            for (int i = res.get_num_infected() - 1; i > 0; --i)
+            {
+                // *** Calculate proportion of infected on a given day of the infection ***
 
-            res.infected[i] = std::round(curr_inf * precDivider) / precDivider;
+                // The previous day of infection
+                double curr_inf = res.infected[i - 1] * res.age_divided_populations[age_sub_division];
 
-            // The amount of susceptible does not include the amount the infected proportion of the population
-            new_s -= res.infected[i];
+                // A proportion of the previous day's infection recovers, leading to a new proportion
+                // of the population that is currently infected at the current day of infection
+                curr_inf *= 1 - recovery_rates[res.phase][age_sub_division][i - 1];
+
+                curr_inf = std::round(curr_inf * precDivider) / precDivider;
+
+                // The amount of susceptible does not include the amount the infected proportion of the population
+                new_s -= curr_inf;
+
+                // Update the new infections value for the current infection stage, that the current age group contributed to
+                new_infections[i - 1] += curr_inf;
+            }
         }
+
+        // Now update all of the infection values for all of the infection stage
+        std::copy(new_infections.begin(), new_infections.end(), res.infected.begin() + 1);
 
         // The people on the first day of infection are equal to the number of infections from the susceptible population
         res.infected[0] = new_i;
@@ -116,7 +138,7 @@ public:
         // The susceptible population does not include the recovered population
         new_s -= new_r;
 
-        if(new_s > -0.001 && new_s < 0) new_s = 0;  // float precision issues
+        if(new_s > -0.001 && new_s < 0) new_s = 0;  // double precision issues
 
         assert(new_s >= 0);
         res.susceptible = new_s;
@@ -145,7 +167,7 @@ public:
 
     void check_valid_state() const {
         sir init = state.current_state;
-        float sum = init.susceptible;
+        double sum = init.susceptible;
         assert(init.susceptible >= 0 && init.susceptible <= 1);
         for(int i=0; i < init.get_num_infected(); i++) {
             assert(init.infected[i] >= 0 && init.infected[i] <= 1);
@@ -158,8 +180,8 @@ public:
         assert(sum == 1);
     }
 
-    float new_infections() const {
-        float inf = 0;
+    double new_infections() const {
+        double inf = 0;
         sir cstate = state.current_state;
 
         // external infected
@@ -167,19 +189,22 @@ public:
             sir nstate = state.neighbors_state.at(neighbor);
             vicinity v = state.neighbors_vicinity.at(neighbor);
 
-            for (int i = 0; i < nstate.get_num_infected(); ++i) {
+            for (int age_sub_division = 0; age_sub_division < nstate.age_divided_populations.size(); ++age_sub_division) {
+                for (int i = 0; i < nstate.get_num_infected(); ++i) {
 
-                inf +=  v.correlation * mobility_rates[cstate.phase][i] * // variable Cij
-                        virulence_rates[cstate.phase][i] * // variable lambda
-                        cstate.susceptible * cstate.population_density * // variable Rho(i)
-                        cstate.susceptible * nstate.infected[i]; // variables Si and Ij, respectively
+                    inf += v.correlation * mobility_rates[cstate.phase][age_sub_division][i] * // variable Cij
+                           virulence_rates[cstate.phase][age_sub_division][i] * // variable lambda
+                           cstate.susceptible * cstate.population_density * // variable Rho(i)
+                           cstate.susceptible * nstate.infected[i] * // variables Si and Ij, respectively
+                           cstate.age_divided_populations[age_sub_division]; // The amount of new infections from the current sub_population
+                }
             }
         }
 
         return std::min(cstate.susceptible, inf);
     }
 
-    float get_phase_penalty(unsigned int phase) const {
+    double get_phase_penalty(unsigned int phase) const {
         // All rates vector have the same number of phases, so it doesn't matter which one is used here
         assert(0 <= phase && phase < virulence_rates.size());
         return 1;

@@ -9,11 +9,16 @@
 
 struct simulation_configuration
 {
-    float disobedient;
+    double disobedient;
     int precision;
-    std::vector<std::vector<float>> virulence_rates;
-    std::vector<std::vector<float>> recovery_rates;
-    std::vector<std::vector<float>> mobility_rates;
+    using phase_rates =
+                        std::vector<            // The current phase
+                        std::vector<            // The age sub_division
+                        std::vector<double>>>;   // The stage of infection
+
+    phase_rates virulence_rates;
+    phase_rates recovery_rates;
+    phase_rates mobility_rates;
 };
 
 void from_json(const nlohmann::json& j, simulation_configuration &v) {
