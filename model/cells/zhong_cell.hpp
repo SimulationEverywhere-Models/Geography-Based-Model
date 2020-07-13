@@ -31,13 +31,13 @@ public:
     using config_type = simulation_configuration;
 
     using phase_rates =
-                        std::vector<            // The current phase
                         std::vector<            // The age sub_division
-                        std::vector<double>>>;   // The stage of infection
+                        std::vector<double>>;   // The stage of infection
 
     phase_rates virulence_rates;
     phase_rates recovery_rates;
     phase_rates mobility_rates;
+    std::vector<float> mobility_correction_factor;
 
     double disobedient;
     int precDivider;
@@ -50,13 +50,14 @@ public:
         virulence_rates = std::move(config.virulence_rates);
         recovery_rates = std::move(config.recovery_rates);
         mobility_rates = std::move(config.mobility_rates);
+        mobility_correction_factor = std::move(config.mobility_correction_factor);
 
         disobedient = config.disobedient;
         precDivider = config.precision;
 
         assert(virulence_rates.size() == recovery_rates.size() &&
                        virulence_rates.size() == mobility_rates.size() &&
-               "\n\nThere must be an equal number of phases between all configuration rates.\n\n");
+               "\n\nThere must be an equal number of age segments between all configuration rates.\n\n");
     }
 
     // user must define this function. It returns the next cell state and its corresponding timeout
@@ -76,7 +77,7 @@ public:
             for (int i = 0; i < res.get_num_infected() - 1; ++i) {
                 // Calculate all of the new recovered- for every day that a population is infected, some recover.
 
-                new_r += std::round(res.age_divided_populations[age_sub_division] * res.infected[i] * recovery_rates[res.phase][age_sub_division][i] * precDivider) / precDivider;;
+                new_r += std::round(res.age_divided_populations[age_sub_division] * res.infected[i] * recovery_rates[age_sub_division][i] * precDivider) / precDivider;;
             }
         }
 
@@ -100,7 +101,7 @@ public:
 
                 // A proportion of the previous day's infection recovers, leading to a new proportion
                 // of the population that is currently infected at the current day of infection
-                curr_inf *= 1 - recovery_rates[res.phase][age_sub_division][i - 1];
+                curr_inf *= 1 - recovery_rates[age_sub_division][i - 1];
 
                 curr_inf = std::round(curr_inf * precDivider) / precDivider;
 
@@ -192,11 +193,12 @@ public:
             for (int age_sub_division = 0; age_sub_division < nstate.age_divided_populations.size(); ++age_sub_division) {
                 for (int i = 0; i < nstate.get_num_infected(); ++i) {
 
-                    inf += v.correlation * mobility_rates[cstate.phase][age_sub_division][i] * // variable Cij
-                           virulence_rates[cstate.phase][age_sub_division][i] * // variable lambda
-                           cstate.susceptible * cstate.population_density * // variable Rho(i)
+                    inf += v.correlation * mobility_rates[age_sub_division][i] * // variable Cij
+                           virulence_rates[age_sub_division][i] * // variable lambda
                            cstate.susceptible * nstate.infected[i] * // variables Si and Ij, respectively
-                           cstate.age_divided_populations[age_sub_division]; // The amount of new infections from the current sub_population
+                           cstate.age_divided_populations[age_sub_division] * // The amount of new infections from the current sub_population
+                           mobility_correction_factor[cstate.phase];
+
                 }
             }
         }
