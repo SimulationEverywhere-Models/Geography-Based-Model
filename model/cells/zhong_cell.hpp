@@ -38,21 +38,25 @@ public:
     phase_rates recovery_rates;
     phase_rates mobility_rates;
     std::vector<float> mobility_correction_factor;
+    int phase_duration;  // number of days that takes one phase
+    double disobedient;  // percentage of population that do not follow the quarantine restrictions
 
-    double disobedient;
     int precDivider;
 
     zhong_cell() : cell<T, std::string, sir, vicinity>() {}
 
-    zhong_cell(std::string const &cell_id, cell_unordered<vicinity> const &neighborhood, sir initial_state, std::string const &delay_id, simulation_configuration config) :
+    zhong_cell(std::string const &cell_id, cell_unordered<vicinity> const &neighborhood, sir initial_state,
+            std::string const &delay_id, simulation_configuration config) :
     cell<T, std::string, sir, vicinity>(cell_id, neighborhood, initial_state, delay_id) {
 
         virulence_rates = std::move(config.virulence_rates);
         recovery_rates = std::move(config.recovery_rates);
         mobility_rates = std::move(config.mobility_rates);
-        mobility_correction_factor = std::move(config.mobility_correction_factor);
 
+        mobility_correction_factor = std::move(config.mobility_correction_factor);
+        phase_duration = config.phase_duration;
         disobedient = config.disobedient;
+
         precDivider = config.precision;
 
         assert(virulence_rates.size() == recovery_rates.size() &&
@@ -65,7 +69,7 @@ public:
 
         sir res = state.current_state;
 
-        double new_i = std::round(get_phase_penalty(res.phase) * new_infections() * precDivider) / precDivider;
+        double new_i = std::round(new_infections() * precDivider) / precDivider;
 
         // Of the population that is on the last day of the infection, they are now considered recovered.
         double new_r = res.infected.back();
@@ -153,37 +157,12 @@ public:
         return 1;
     }
 
-    void check_valid_vicinity() {
-
-        sir cstate = state.current_state;
-
-        for(const auto& neighbor : neighbors) {
-
-            sir nstate = state.neighbors_state.at(neighbor);
-            vicinity v = state.neighbors_vicinity.at(neighbor);
-
-            assert(v.correlation >= 0 && v.correlation <= 1);
-        }
-    }
-
-    void check_valid_state() const {
-        sir init = state.current_state;
-        double sum = init.susceptible;
-        assert(init.susceptible >= 0 && init.susceptible <= 1);
-        for(int i=0; i < init.get_num_infected(); i++) {
-            assert(init.infected[i] >= 0 && init.infected[i] <= 1);
-            sum += init.infected[i];
-        }
-        for(int i=0; i < init.get_num_recovered(); i++) {
-            assert(init.recovered[i] >= 0 && init.recovered[i] <= 1);
-            sum += init.recovered[i];
-        }
-        assert(sum == 1);
-    }
-
     double new_infections() const {
         double inf = 0;
         sir cstate = state.current_state;
+
+        // disobedient people have a correction factor of 1. The rest of the population -> whatever in the configuration
+        float correction = disobedient + (1 - disobedient) * mobility_correction_factor[cstate.phase];
 
         // external infected
         for(auto neighbor: neighbors) {
@@ -197,7 +176,7 @@ public:
                            virulence_rates[age_sub_division][i] * // variable lambda
                            cstate.susceptible * nstate.infected[i] * // variables Si and Ij, respectively
                            cstate.age_divided_populations[age_sub_division] * // The amount of new infections from the current sub_population
-                           mobility_correction_factor[cstate.phase];
+                           correction;  // New infections may be slightly fewer if there are mobility restrictions
 
                 }
             }
@@ -206,14 +185,11 @@ public:
         return std::min(cstate.susceptible, inf);
     }
 
-    double get_phase_penalty(unsigned int phase) const {
-        // All rates vector have the same number of phases, so it doesn't matter which one is used here
-        assert(0 <= phase && phase < virulence_rates.size());
-        return 1;
-    }
-
     unsigned int next_phase(unsigned int phase) const {
-        return 0;
+        // First, check if phase should be incremented
+        int next = (simulation_clock % phase_duration == phase_duration - 1)? phase + 1 : phase;
+        // Then, check that the phase number is within the bounds
+        return next % mobility_correction_factor.size();
     }
 };
 

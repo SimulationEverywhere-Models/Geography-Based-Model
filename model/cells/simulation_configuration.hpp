@@ -9,6 +9,7 @@
 
 struct simulation_configuration
 {
+    int phase_duration;
     double disobedient;
     int precision;
     using phase_rates =
