@@ -37,9 +37,13 @@ public:
     phase_rates virulence_rates;
     phase_rates recovery_rates;
     phase_rates mobility_rates;
-    std::vector<float> mobility_correction_factor;
-    int phase_duration;  // number of days that takes one phase
+
     double disobedient;  // percentage of population that do not follow the quarantine restrictions
+
+    using infection_threshold = float;
+    using mobility_correction_factor = float;
+
+    std::map<infection_threshold, mobility_correction_factor> correction_factors;
 
     int precDivider;
 
@@ -53,8 +57,7 @@ public:
         recovery_rates = std::move(config.recovery_rates);
         mobility_rates = std::move(config.mobility_rates);
 
-        mobility_correction_factor = std::move(config.mobility_correction_factor);
-        phase_duration = config.phase_duration;
+        correction_factors = std::move(config.correction_factors);
         disobedient = config.disobedient;
 
         precDivider = config.precision;
@@ -148,8 +151,6 @@ public:
         assert(new_s >= 0);
         res.susceptible = new_s;
 
-        res.phase = next_phase(res.phase);
-
         return res;
     }
     // It returns the delay to communicate cell's new state.
@@ -162,7 +163,7 @@ public:
         sir cstate = state.current_state;
 
         // disobedient people have a correction factor of 1. The rest of the population -> whatever in the configuration
-        float correction = disobedient + (1 - disobedient) * mobility_correction_factor[cstate.phase];
+        float correction = disobedient + (1 - disobedient) * movement_correction_factor();
 
         // external infected
         for(auto neighbor: neighbors) {
@@ -185,11 +186,54 @@ public:
         return std::min(cstate.susceptible, inf);
     }
 
-    unsigned int next_phase(unsigned int phase) const {
-        // First, check if phase should be incremented
-        int next = (simulation_clock % phase_duration == phase_duration - 1)? phase + 1 : phase;
-        // Then, check that the phase number is within the bounds
-        return next % mobility_correction_factor.size();
+    float movement_correction_factor() const {
+
+        // To find the range that the current total_infections is in, an iterator to an element in infection_correction_factors plus
+        // an iterator to the next element is used (the keys of both elements define the lower and higher range threshold respectively).
+        // Note: An ordered map must be used to ensure this works, and map iterators are bidirectional- not random access. Hence separate
+        //       lines to increment or de-increment iterators.
+
+        sir res = state.current_state;
+
+        float total_infections = std::accumulate(res.infected.begin(), res.infected.end(), 0.0f);
+
+        auto iterator = correction_factors.begin();
+
+        // Two things:
+        // First: For every iteration of the container, the next element will be referenced. Therefore one element before
+        //        the end of the container is the element to iterate to.
+        // Second: There will always be at least two elements in the container (keys 0.0 and 1.0; see from_json() in simulation_configuration.hpp)
+        auto end_container_iterator = correction_factors.end();
+        --end_container_iterator;
+
+        // From this point onwards, the iterator variable can be thought of as lower_range_threshold
+        while(iterator != end_container_iterator) {
+
+            auto upper_range_threshold = iterator;
+            ++upper_range_threshold;
+
+            if(total_infections >= iterator->second && total_infections <= upper_range_threshold->second) {
+
+                return iterator->second;
+            }
+
+            ++iterator;
+        }
+
+        // If the infection value did not match any infection range, then an error occurred, as all of the ranges
+        // in the infected_correction_factors variable cover the range of [0, 1].
+
+        std::string ranges_given;
+
+        for(const auto &i : correction_factors) {
+
+            ranges_given += std::to_string(i.first) + " , " + std::to_string(i.second) + '\n';
+        }
+
+        std::cerr << "No range given for the current infection value of: " << total_infections << ". The ranges are as follows: \n"
+                  << ranges_given << std::endl;
+
+        assert(false);
     }
 };
 
