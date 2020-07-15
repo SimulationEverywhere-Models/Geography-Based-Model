@@ -19,8 +19,8 @@ struct sir {
     double land_area;
     double susceptible;
 
-    sir(unsigned int popDensity, unsigned int phase, std::vector<double> age_divided_populations, std::vector<double> infected, std::vector<double> recovered, double border_length, double land_area)
-            :
+    sir(unsigned int popDensity, unsigned int phase, std::vector<double> age_divided_populations,
+            std::vector<double> infected, std::vector<double> recovered, double border_length, double land_area) :
                 population_density{popDensity},
                 phase{phase},
                 age_divided_populations{age_divided_populations},
@@ -29,23 +29,15 @@ struct sir {
                 border_length{border_length},
                 land_area{land_area} {
         susceptible = 1.0f - infected.front();
-
     }
 
-    sir()
-            :
-                population_density{0},
-                phase{0} {
+    sir() : population_density{0}, phase{0} { }
 
-    }
-
-    unsigned int get_num_infected() const
-    {
+    unsigned int get_num_infected() const {
         return infected.size();
     }
 
-    unsigned int get_num_recovered() const
-    {
+    unsigned int get_num_recovered() const {
         return recovered.size();
     }
 
@@ -71,8 +63,6 @@ std::ostream &operator<<(std::ostream &os, const sir &sir) {
     for (auto recovered : sir.recovered) {
         os << "," << recovered;
     }
-
-
     os << ">";
 
     return os;

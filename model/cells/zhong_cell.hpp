@@ -21,7 +21,7 @@ template <typename T>
 class zhong_cell : public cell<T, std::string, sir, vicinity> {
 public:
 
-    template<typename X>
+    template <typename X>
     using cell_unordered = std::unordered_map<std::string, X>;
 
     using cell<T, std::string, sir, vicinity>::simulation_clock;
@@ -30,8 +30,7 @@ public:
 
     using config_type = simulation_configuration;
 
-    using phase_rates =
-                        std::vector<            // The age sub_division
+    using phase_rates = std::vector<            // The age sub_division
                         std::vector<double>>;   // The stage of infection
 
     phase_rates virulence_rates;
@@ -40,6 +39,7 @@ public:
 
     double disobedient;  // percentage of population that do not follow the quarantine restrictions
 
+    // TODO why do you define special types for floats?
     using infection_threshold = float;
     using mobility_correction_factor = float;
 
@@ -62,8 +62,7 @@ public:
 
         precDivider = config.precision;
 
-        assert(virulence_rates.size() == recovery_rates.size() &&
-                       virulence_rates.size() == mobility_rates.size() &&
+        assert(virulence_rates.size() == recovery_rates.size() && virulence_rates.size() == mobility_rates.size() &&
                "\n\nThere must be an equal number of age segments between all configuration rates.\n\n");
     }
 
@@ -197,8 +196,17 @@ public:
 
         float total_infections = std::accumulate(res.infected.begin(), res.infected.end(), 0.0f);
 
-        auto iterator = correction_factors.begin();
+        // TODO I think that the following piece of code is equivant but more readable, what do you think?
+        float correction = correction_factors.at(0.0);
+        for (auto const &pair: correction_factors) {
+            if (total_infections >= pair.first)
+                correction = pair.second;
+            else
+                break;
+        }
+        // Here correction contains the desired value
 
+        auto iterator = correction_factors.begin();
         // Two things:
         // First: For every iteration of the container, the next element will be referenced. Therefore one element before
         //        the end of the container is the element to iterate to.
