@@ -9,7 +9,7 @@
 
 struct simulation_configuration
 {
-    // TODO why do you define new types for referring to floats?
+    // To make the parameters of the correction_factors variable more obvious
     using infection_threshold = float;
     using mobility_correction_factor = float;
 
@@ -39,7 +39,6 @@ void from_json(const nlohmann::json& j, simulation_configuration &v) {
     for (const auto &i : unparsed_infection_correction_factors) {
         float infection_threshold;
         try {
-
             infection_threshold = std::stof(i.first);
         }
         catch(std::invalid_argument &e) {
@@ -56,18 +55,6 @@ void from_json(const nlohmann::json& j, simulation_configuration &v) {
             throw std::invalid_argument{error_message};
         }
         v.correction_factors.insert({infection_threshold, i.second});
-    }
-
-    // Due to how the infection ranges are processed, keys of 0.0 and 1.0 must always exist.
-    if (v.correction_factors.find(0.0f) == v.correction_factors.end()) {
-        v.correction_factors.insert({0.0f, 0.0f});
-    }
-    // TODO Maybe we can remove this (the condition is only valid for a single case, a bit strange)
-    if (v.correction_factors.find(1.0f) == v.correction_factors.end()) {
-        v.correction_factors.insert({1.0f, 0.0});       // The mapped value is never used since the key is 1.0f, as there
-                                                                    // is no upper bound range with 1.0 as the lower bound range.
-                                                                    // See movement_correction_factor() in zhong_cell.hpp for more details.
-                                                                    // As a result, the mapped value does not matter.
     }
 }
 

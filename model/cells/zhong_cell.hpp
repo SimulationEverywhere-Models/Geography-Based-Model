@@ -39,7 +39,7 @@ public:
 
     double disobedient;  // percentage of population that do not follow the quarantine restrictions
 
-    // TODO why do you define special types for floats?
+    // To make the parameters of the correction_factors variable more obvious
     using infection_threshold = float;
     using mobility_correction_factor = float;
 
@@ -187,61 +187,21 @@ public:
 
     float movement_correction_factor() const {
 
-        // To find the range that the current total_infections is in, an iterator to an element in infection_correction_factors plus
-        // an iterator to the next element is used (the keys of both elements define the lower and higher range threshold respectively).
-        // Note: An ordered map must be used to ensure this works, and map iterators are bidirectional- not random access. Hence separate
-        //       lines to increment or de-increment iterators.
-
         sir res = state.current_state;
 
         float total_infections = std::accumulate(res.infected.begin(), res.infected.end(), 0.0f);
 
-        // TODO I think that the following piece of code is equivant but more readable, what do you think?
-        float correction = correction_factors.at(0.0);
+        float correction = 1.0f;
         for (auto const &pair: correction_factors) {
-            if (total_infections >= pair.first)
+            if (total_infections >= pair.first) {
                 correction = pair.second;
-            else
-                break;
-        }
-        // Here correction contains the desired value
-
-        auto iterator = correction_factors.begin();
-        // Two things:
-        // First: For every iteration of the container, the next element will be referenced. Therefore one element before
-        //        the end of the container is the element to iterate to.
-        // Second: There will always be at least two elements in the container (keys 0.0 and 1.0; see from_json() in simulation_configuration.hpp)
-        auto end_container_iterator = correction_factors.end();
-        --end_container_iterator;
-
-        // From this point onwards, the iterator variable can be thought of as lower_range_threshold
-        while(iterator != end_container_iterator) {
-
-            auto upper_range_threshold = iterator;
-            ++upper_range_threshold;
-
-            if(total_infections >= iterator->second && total_infections <= upper_range_threshold->second) {
-
-                return iterator->second;
             }
-
-            ++iterator;
+            else {
+                break;
+            }
         }
 
-        // If the infection value did not match any infection range, then an error occurred, as all of the ranges
-        // in the infected_correction_factors variable cover the range of [0, 1].
-
-        std::string ranges_given;
-
-        for(const auto &i : correction_factors) {
-
-            ranges_given += std::to_string(i.first) + " , " + std::to_string(i.second) + '\n';
-        }
-
-        std::cerr << "No range given for the current infection value of: " << total_infections << ". The ranges are as follows: \n"
-                  << ranges_given << std::endl;
-
-        assert(false);
+        return correction;
     }
 };
 
