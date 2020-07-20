@@ -71,84 +71,72 @@ public:
 
         sir res = state.current_state;
 
-        double new_i = std::round(new_infections() * precDivider) / precDivider;
+        // Whenever referring to a "population", it is meant the current age group's population.
+        for(int age_segment_index = 0; age_segment_index < res.get_num_age_segments(); ++age_segment_index) {
 
-        // Of the population that is on the last day of the infection, they are now considered recovered.
-        double new_r = res.infected.back();
+            double new_i = std::round(new_infections(age_segment_index) * precDivider) / precDivider;
 
-        double new_s = 1;
+            // Of the population that is on the last day of the infection, they are now considered recovered.
+            double new_r = res.infected[age_segment_index].back();
 
-        // Equation 6e
-        for(int age_sub_division = 0; age_sub_division < res.age_divided_populations.size(); ++age_sub_division) {
-            for (int i = 0; i < res.get_num_infected() - 1; ++i) {
+            double new_s = 1;
+
+            // Equation 6e
+            for (int i = 0; i < res.get_num_recovered_phases() - 1; ++i)
+            {
                 // Calculate all of the new recovered- for every day that a population is infected, some recover.
-
-                new_r += std::round(res.age_divided_populations[age_sub_division] * res.infected[i] * recovery_rates[age_sub_division][i] * precDivider) / precDivider;;
+                new_r += std::round(res.infected[age_segment_index][i] * recovery_rates[age_segment_index][i] * precDivider) / precDivider;
             }
-        }
 
-        // Equation 6b is done through several steps, every time new_s is subtracted from
+            // Equation 6d
 
-
-        // Equation 6d
-
-        // The infections have to be updated only after all age group infection calculations are done; otherwise iterations
-        // after the first iteration will use invalid infected values. The first infection stage will have the value of new_i,
-        // so one less infection states needs to be kept tracked of.
-        std::vector<double> new_infections(res.get_num_infected() - 1, 0.0f);
-
-        for(int age_sub_division = 0; age_sub_division < res.age_divided_populations.size(); ++age_sub_division) {
-            for (int i = res.get_num_infected() - 1; i > 0; --i)
+            for (int i = res.get_num_infected_phases() - 1; i > 0; --i)
             {
                 // *** Calculate proportion of infected on a given day of the infection ***
 
                 // The previous day of infection
-                double curr_inf = res.infected[i - 1] * res.age_divided_populations[age_sub_division];
+                double curr_inf = res.infected[age_segment_index][i - 1];
 
                 // A proportion of the previous day's infection recovers, leading to a new proportion
                 // of the population that is currently infected at the current day of infection
-                curr_inf *= 1 - recovery_rates[age_sub_division][i - 1];
+                curr_inf *= 1 - recovery_rates[age_segment_index][i - 1];
 
                 curr_inf = std::round(curr_inf * precDivider) / precDivider;
 
-                // The amount of susceptible does not include the amount the infected proportion of the population
+                // The amount of susceptible does not include the infected population
                 new_s -= curr_inf;
 
-                // Update the new infections value for the current infection stage, that the current age group contributed to
-                new_infections[i - 1] += curr_inf;
+                res.infected[age_segment_index][i] = curr_inf;
             }
+
+            // The people on the first day of infection are equal to the number of infections from the susceptible population
+            res.infected[age_segment_index][0] = new_i;
+
+            // The susceptible population does those that just became infected
+            new_s -= new_i;
+
+            // Equation 6a
+            for (int i = res.get_num_recovered_phases() - 1; i > 0; --i)
+            {
+                // Each day of the recovered is the value of the previous day. The population on the last day is
+                // now susceptible; this is implicitly done already as the susceptible value was set to 1.0 and the
+                // population on the last day of recovery is never subtracted from the susceptible value.
+                res.recovered[age_segment_index][i] = res.recovered[age_segment_index][i - 1];
+                new_s -= res.recovered[age_segment_index][i];
+            }
+
+            // The people on the first day of recovery are those that were on the last stage of infection
+            // in the previous time step plus those that recovered early during an infection stage.
+            res.recovered[age_segment_index][0] = new_r;
+
+            // The susceptible population does not include the recovered population
+            new_s -= new_r;
+
+            if (new_s > -0.001 && new_s < 0) new_s = 0;  // double precision issues
+
+            assert(new_s >= 0);
+            res.susceptible[age_segment_index] = new_s;
         }
-
-        // Now update all of the infection values for all of the infection stage
-        std::copy(new_infections.begin(), new_infections.end(), res.infected.begin() + 1);
-
-        // The people on the first day of infection are equal to the number of infections from the susceptible population
-        res.infected[0] = new_i;
-
-        // The susceptible population does not include infected individuals
-        new_s -= new_i;
-
-        // Equation 6a
-        for (int i = res.get_num_recovered() - 1; i > 0; --i)
-        {
-            // Each day of the recovered is the value of the previous day. The population on the last day is
-            // now susceptible; this is implicitly done already as the susceptible value was set to 1.0 and the
-            // population on the last day of recovery is never subtracted from the susceptible value.
-            res.recovered[i] = res.recovered[i-1];
-            new_s -= res.recovered[i];
-        }
-
-        // The people on the first day of recovery are those that were on the last stage of infection
-        // in the previous time step.
-        res.recovered[0] = new_r;
-
-        // The susceptible population does not include the recovered population
-        new_s -= new_r;
-
-        if(new_s > -0.001 && new_s < 0) new_s = 0;  // double precision issues
-
-        assert(new_s >= 0);
-        res.susceptible = new_s;
 
         return res;
     }
@@ -157,7 +145,7 @@ public:
         return 1;
     }
 
-    double new_infections() const {
+    double new_infections(unsigned int age_segment_index) const {
         double inf = 0;
         sir cstate = state.current_state;
 
@@ -169,27 +157,36 @@ public:
             sir nstate = state.neighbors_state.at(neighbor);
             vicinity v = state.neighbors_vicinity.at(neighbor);
 
-            for (int age_sub_division = 0; age_sub_division < nstate.age_divided_populations.size(); ++age_sub_division) {
-                for (int i = 0; i < nstate.get_num_infected(); ++i) {
+            float total_neighbouring_infections = 0.0f;
 
-                    inf += v.correlation * mobility_rates[age_sub_division][i] * // variable Cij
-                           virulence_rates[age_sub_division][i] * // variable lambda
-                           cstate.susceptible * nstate.infected[i] * // variables Si and Ij, respectively
-                           cstate.age_divided_populations[age_sub_division] * // The amount of new infections from the current sub_population
-                           correction;  // New infections may be slightly fewer if there are mobility restrictions
+            for(const auto &infected : nstate.infected) {
+                total_neighbouring_infections += std::accumulate(infected.begin(), infected.end(), 0.0f);
+            }
 
-                }
+            for (int i = 0; i < nstate.get_num_infected_phases(); ++i) {
+
+                inf += v.correlation * mobility_rates[age_segment_index][i] * // variable Cij
+                       virulence_rates[age_segment_index][i] * // variable lambda
+                       cstate.susceptible[age_segment_index] * total_neighbouring_infections * // variables Si and Ij, respectively
+                       correction;  // New infections may be slightly fewer if there are mobility restrictions
+
             }
         }
 
-        return std::min(cstate.susceptible, inf);
+        return std::min(cstate.susceptible[age_segment_index], inf);
     }
 
     float movement_correction_factor() const {
 
         sir res = state.current_state;
 
-        float total_infections = std::accumulate(res.infected.begin(), res.infected.end(), 0.0f);
+        float total_infections = 0.0f;
+
+        // Get the the portion of the population that is infected, which is the sum of the infected population of all of
+        // the groups for the current cell.
+        for(auto &infected : res.infected) {
+            total_infections += std::accumulate(infected.begin(), infected.end(), 0.0f);
+        }
 
         float correction = 1.0f;
         for (auto const &pair: correction_factors) {
