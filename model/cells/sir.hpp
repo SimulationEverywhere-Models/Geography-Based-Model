@@ -9,6 +9,7 @@
 #include <nlohmann/json.hpp>
 
 struct sir {
+    std::vector<double> age_group_proportions;
     std::vector<double> susceptible;
     std::vector<std::vector<double>> infected;
     std::vector<std::vector<double>> recovered;
@@ -37,6 +38,38 @@ struct sir {
         return recovered.front().size(); // There will always be at least one age group, meaning the .front() call is always valid.
     }
 
+    static double sum_state_vector(const std::vector<double> &state_vector) {
+        return std::accumulate(state_vector.begin(), state_vector.end(), 0.0f);
+    }
+
+    // For the get_total_XXX functions, remember that the sum of the values in each vector associated with an age group
+    // is one. When looking at the population as a whole, the sum of any state vector has to be adjusted according to how
+    // big of a proportion the age group contributes to a population.
+
+    double get_total_infections() const {
+        float total_infections = 0.0f;
+        for(int i = 0; i < age_group_proportions.size(); ++i) {
+            total_infections += sum_state_vector(infected[i]) * age_group_proportions[i];
+        }
+        return total_infections;
+    }
+
+    double get_total_recovered() const {
+        double total_recoveries = 0.0f;
+        for(int i = 0; i < age_group_proportions.size(); ++i) {
+            total_recoveries += sum_state_vector(recovered[i]) * age_group_proportions[i];
+        }
+        return total_recoveries;
+    }
+
+    double get_total_susceptible() const {
+        double total_susceptible = 0.0f;
+        for(int i = 0; i < age_group_proportions.size(); ++i) {
+            total_susceptible += susceptible[i] * age_group_proportions[i];
+        }
+        return total_susceptible;
+    }
+
     bool operator!=(const sir &other) const {
         return (susceptible != other.susceptible) || (infected != other.infected) || (recovered != other.recovered);
     }
@@ -46,37 +79,49 @@ bool operator<(const sir &lhs, const sir &rhs) { return true; }
 
 std::ostream &operator<<(std::ostream &os, const sir &sir) {
 
-    std::string susceptible_information;
-    std::string infected_information;
-    std::string recovered_information;
+    bool print_specific_state_information = false;
 
-    for(auto susceptible_age_segment : sir.susceptible) {
-        susceptible_information += "," + std::to_string(susceptible_age_segment);
-    }
+    if(print_specific_state_information) {
+        std::string susceptible_information;
+        std::string infected_information;
+        std::string recovered_information;
 
-    for(const auto &infected_age_segment : sir.infected) {
-        for (auto infected_phase : infected_age_segment) {
-            infected_information += "," + std::to_string(infected_phase);
+        for(auto susceptible_age_segment : sir.susceptible) {
+            susceptible_information += "," + std::to_string(susceptible_age_segment);
         }
-    }
 
-    for(const auto &recovered_age_segment : sir.recovered) {
-        for (auto recovered_phase : recovered_age_segment) {
-            recovered_information += "," + std::to_string(recovered_phase);
+        for(const auto &infected_age_segment : sir.infected) {
+            for (auto infected_phase : infected_age_segment) {
+                infected_information += "," + std::to_string(infected_phase);
+            }
         }
+
+        for(const auto &recovered_age_segment : sir.recovered) {
+            for (auto recovered_phase : recovered_age_segment) {
+                recovered_information += "," + std::to_string(recovered_phase);
+            }
+        }
+
+        os << "<" << sir.get_num_age_segments() << "," << sir.get_num_infected_phases() << "," << sir.get_num_recovered_phases();
+
+        os << susceptible_information << infected_information << recovered_information << ">";
     }
-
-    os << "<" << "," << sir.get_num_age_segments() << "," << sir.get_num_infected_phases() << "," << sir.get_num_recovered_phases();
-
-    os << susceptible_information << infected_information << recovered_information << ">";
+    else {
+        os << "<" << sir.get_total_susceptible() << "," << sir.get_total_infections() << "," << sir.get_total_recovered() << ">";
+    }
 
     return os;
 }
 
 void from_json(const nlohmann::json &json, sir &sir) {
+    json.at("age_group_proportions").get_to(sir.age_group_proportions);
     json.at("infected").get_to(sir.infected);
     json.at("recovered").get_to(sir.recovered);
     json.at("susceptible").get_to(sir.susceptible);
+
+    assert(sir.age_group_proportions.size() == sir.susceptible.size() && sir.age_group_proportions.size() == sir.infected.size()
+           && sir.age_group_proportions.size() == sir.recovered.size() && "There must be an equal number of age groups between"
+                                                                          "age_group_proportions, susceptible, infected, and recovered!\n");
 }
 
 #endif //PANDEMIC_HOYA_2002_SIR_HPP

@@ -72,6 +72,8 @@ public:
         sir res = state.current_state;
 
         // Whenever referring to a "population", it is meant the current age group's population.
+        // These calculations are independent of the other age groups, meaning that the proportion that the current
+        // age group contributes to the population does not need to be taken into account.
         for(int age_segment_index = 0; age_segment_index < res.get_num_age_segments(); ++age_segment_index) {
 
             double new_i = std::round(new_infections(age_segment_index) * precDivider) / precDivider;
@@ -157,19 +159,12 @@ public:
             sir nstate = state.neighbors_state.at(neighbor);
             vicinity v = state.neighbors_vicinity.at(neighbor);
 
-            float total_neighbouring_infections = 0.0f;
-
-            for(const auto &infected : nstate.infected) {
-                total_neighbouring_infections += std::accumulate(infected.begin(), infected.end(), 0.0f);
-            }
-
             for (int i = 0; i < nstate.get_num_infected_phases(); ++i) {
 
                 inf += v.correlation * mobility_rates[age_segment_index][i] * // variable Cij
                        virulence_rates[age_segment_index][i] * // variable lambda
-                       cstate.susceptible[age_segment_index] * total_neighbouring_infections * // variables Si and Ij, respectively
+                       cstate.susceptible[age_segment_index] * nstate.get_total_infections() * // variables Si and Ij, respectively
                        correction;  // New infections may be slightly fewer if there are mobility restrictions
-
             }
         }
 
@@ -180,17 +175,9 @@ public:
 
         sir res = state.current_state;
 
-        float total_infections = 0.0f;
-
-        // Get the the portion of the population that is infected, which is the sum of the infected population of all of
-        // the groups for the current cell.
-        for(auto &infected : res.infected) {
-            total_infections += std::accumulate(infected.begin(), infected.end(), 0.0f);
-        }
-
         float correction = 1.0f;
         for (auto const &pair: correction_factors) {
-            if (total_infections >= pair.first) {
+            if (res.get_total_infections() >= pair.first) {
                 correction = pair.second;
             }
             else {
