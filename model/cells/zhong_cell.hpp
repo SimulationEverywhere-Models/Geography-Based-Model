@@ -41,7 +41,8 @@ public:
 
     // To make the parameters of the correction_factors variable more obvious
     using infection_threshold = float;
-    using mobility_correction_factor = float;
+    using mobility_correction_factor = std::array<float, 2>; // The first value is the mobility correction factor;
+                                                             // The second one is the hysteresis factor.
 
     std::map<infection_threshold, mobility_correction_factor> correction_factors;
 
@@ -175,10 +176,51 @@ public:
 
         sir res = state.current_state;
 
+        // If a state of hysteresis is entered, then the various mobility correction factors will not be iterated through.
+        // Thus the values to compare against must be stored separately.
+        // This is done to avoid having to modify the map containing the mobility correction factors.
+
+        // For example, assume a correction factor of "0.4": [0.2, 0.1]. If the infection goes above 0.4, then the
+        // correction factor of 0.2 will now be applied to total infection values above 0.3, no longer 0.4 as the
+        // hysteresis is in effect. No modification of the correction factor map required, allowing this function to be const.
+        static bool hysteresis_in_effect = false;
+        static float hysteresis_mobility_correction_factor = 1.0f;
+        static float hysteresis_total_infections_higher = 0.0f; // Infection threshold of next correction factor
+        static float hysteresis_total_infection_lower = 0.0f; // Infection threshold of hysteresis adjusted current correction factor
+
+        if(res.get_total_infections() > hysteresis_total_infections_higher) {
+            hysteresis_in_effect = false;
+        }
+
+        if(hysteresis_in_effect && res.get_total_infections() >= hysteresis_total_infection_lower) {
+            return hysteresis_mobility_correction_factor;
+        }
+
+        hysteresis_in_effect = false;
+
         float correction = 1.0f;
         for (auto const &pair: correction_factors) {
             if (res.get_total_infections() >= pair.first) {
-                correction = pair.second;
+                correction = pair.second.front();
+
+                // A hysteresis factor will be in effect until the total infection goes below the hysteresis factor;
+                // until that happens the information required to return a movement factor must be kept in above variables.
+
+                // Get the threshold of the next correction factor; otherwise the current correction factor can remain in
+                // effect if the total infections never goes below the lower bound hysteresis factor, but also if it goes
+                // above the original total infection threshold!
+                auto next_pair_iterator = std::find(correction_factors.begin(), correction_factors.end(), pair);
+                assert(next_pair_iterator != correction_factors.end());
+
+                // If there is a next correction factor, then use it's total infection threshold
+                if(std::distance(correction_factors.begin(), next_pair_iterator) != correction_factors.size() - 1) {
+                    ++next_pair_iterator;
+                }
+
+                hysteresis_in_effect = true;
+                hysteresis_total_infections_higher = next_pair_iterator->first;
+                hysteresis_total_infection_lower = pair.first - pair.second.back();
+                hysteresis_mobility_correction_factor = pair.second.front();
             }
             else {
                 break;

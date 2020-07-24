@@ -107,7 +107,17 @@ std::ostream &operator<<(std::ostream &os, const sir &sir) {
         os << susceptible_information << infected_information << recovered_information << ">";
     }
     else {
-        os << "<" << sir.get_total_susceptible() << "," << sir.get_total_infections() << "," << sir.get_total_recovered() << ">";
+
+
+        float new_infections = 0.0f;
+        float new_recoveries = 0.0f;
+
+        for(int i = 0; i < sir.age_group_proportions.size(); ++i) {
+            new_infections += sir.infected.at(i).at(0) * sir.age_group_proportions.at(i);
+            new_recoveries += sir.recovered.at(i).at(0) * sir.age_group_proportions.at(i);
+        }
+
+        os << "<" << sir.get_total_susceptible() << "," << sir.get_total_infections() << "," << sir.get_total_recovered()       << "," << new_infections << "," << new_recoveries << ">";
     }
 
     return os;

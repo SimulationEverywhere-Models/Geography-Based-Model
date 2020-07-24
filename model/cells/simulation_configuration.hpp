@@ -11,7 +11,8 @@ struct simulation_configuration
 {
     // To make the parameters of the correction_factors variable more obvious
     using infection_threshold = float;
-    using mobility_correction_factor = float;
+    using mobility_correction_factor = std::array<float, 2>; // The first value is the mobility correction factor;
+                                                             // The second one is the hysteresis factor.
 
     std::map<infection_threshold, mobility_correction_factor> correction_factors;
     double disobedient;
@@ -32,7 +33,7 @@ void from_json(const nlohmann::json& j, simulation_configuration &v) {
     j.at("recovery_rates").get_to(v.recovery_rates);
     j.at("mobility_rates").get_to(v.mobility_rates);
 
-    std::map<std::string, float> unparsed_infection_correction_factors;
+    std::map<std::string, std::array<float, 2>> unparsed_infection_correction_factors;
 
     j.at("infection_correction_factors").get_to(unparsed_infection_correction_factors);
 
@@ -47,13 +48,28 @@ void from_json(const nlohmann::json& j, simulation_configuration &v) {
             throw std::invalid_argument{"Failed to parse infection correction factor key: " + i.first};
         }
 
-        if(infection_threshold < 0.0f || infection_threshold > 1.0f || i.second < 0.0f || i.second > 1.0f) {
-            std::string error_message = "Invalid key-pair specified (both values must be in the range of [0, 1]:";
-            error_message += "Key: " + i.first + " , ";
-            error_message += "Mapped value: " + std::to_string(i.second);
+        if(infection_threshold < 0.0f || infection_threshold > 1.0f) {
+            std::string error_message = "Invalid key specified (a values must be in the range of [0, 1]:";
+            error_message += "Key: " + i.first;
 
             throw std::invalid_argument{error_message};
         }
+
+        if(i.second.front() < 0.0f || i.second.front() > 1.0f) {
+            std::string error_message = "For the key: " + i.first + " the mobility factor must be in the range of: [0, 1].";
+            error_message += " Erroneous value: " + std::to_string(i.second.front());
+
+            throw std::invalid_argument{error_message};
+        }
+
+        if(i.second.back() < 0.0f || i.second.back() > infection_threshold) {
+            std::string error_message = "Invalid hysteresis specified for the key: " + i.first;
+            error_message += " The hysteresis value (" + std::to_string(i.second.back()) + ") must not exceed:";
+            error_message += "(" + std::to_string(i.second.front()) + ")";
+
+            throw std::runtime_error{error_message};
+        }
+
         v.correction_factors.insert({infection_threshold, i.second});
     }
 }
