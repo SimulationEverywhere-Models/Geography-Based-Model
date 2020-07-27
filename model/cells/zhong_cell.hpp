@@ -36,6 +36,7 @@ public:
     phase_rates virulence_rates;
     phase_rates recovery_rates;
     phase_rates mobility_rates;
+    phase_rates fatality_rates;
 
     double disobedient;  // percentage of population that do not follow the quarantine restrictions
 
@@ -57,6 +58,7 @@ public:
         virulence_rates = std::move(config.virulence_rates);
         recovery_rates = std::move(config.recovery_rates);
         mobility_rates = std::move(config.mobility_rates);
+        fatality_rates = std::move(config.fatality_rates);
 
         correction_factors = std::move(config.correction_factors);
         disobedient = config.disobedient;
@@ -80,15 +82,34 @@ public:
             double new_i = std::round(new_infections(age_segment_index) * precDivider) / precDivider;
 
             // Of the population that is on the last day of the infection, they are now considered recovered.
-            double new_r = res.infected[age_segment_index].back();
+            std::vector<double> recovered(res.get_num_infected_phases(), 0.0f);
+            recovered.back() = res.infected[age_segment_index].back();
 
-            double new_s = 1;
+            std::vector<double> fatalities(res.get_num_infected_phases(), 0.0f);
+
+            // The susceptible population is smaller due to previous deaths
+            double new_s = 1 - res.fatalities[age_segment_index];
+
+            // Calculate all those who have died during an infection stage.
+            for(int i = 0; i < res.get_num_infected_phases(); ++i)
+            {
+                fatalities[i] += std::round(res.infected[age_segment_index][i] * fatality_rates[age_segment_index][i] * precDivider) / precDivider;
+            }
+
+            res.fatalities[age_segment_index] += std::accumulate(fatalities.begin(), fatalities.end(), 0.0f);
+
+            // The susceptible population does not include deaths
+            new_s -= std::accumulate(fatalities.begin(), fatalities.end(), 0.0f);
+
+            // So far, it was assumed that on the last day of infection, all recovered. But this is not true- have to account
+            // for those who died on the last day of infection.
+            recovered.back() -= fatalities.back();
 
             // Equation 6e
             for (int i = 0; i < res.get_num_recovered_phases() - 1; ++i)
             {
                 // Calculate all of the new recovered- for every day that a population is infected, some recover.
-                new_r += std::round(res.infected[age_segment_index][i] * recovery_rates[age_segment_index][i] * precDivider) / precDivider;
+                recovered[i] += std::round(res.infected[age_segment_index][i] * recovery_rates[age_segment_index][i] * precDivider) / precDivider;
             }
 
             // Equation 6d
@@ -100,9 +121,13 @@ public:
                 // The previous day of infection
                 double curr_inf = res.infected[age_segment_index][i - 1];
 
-                // A proportion of the previous day's infection recovers, leading to a new proportion
-                // of the population that is currently infected at the current day of infection
-                curr_inf *= 1 - recovery_rates[age_segment_index][i - 1];
+                // The number of people in a stage of infection moving to the new infection stage do not include those
+                // who have died or recovered. Note: A subtraction must be done here as the recovery and mortality rates
+                // are given for the total population of an infection stage. Multiplying by (1 - respective rate) here will
+                // NOT work as the second multiplication done will effectively be of the infection stage population after
+                // the first multiplication, rather than the entire infection state population.
+                curr_inf -= recovered[i - 1];
+                curr_inf -= fatalities[i - 1];
 
                 curr_inf = std::round(curr_inf * precDivider) / precDivider;
 
@@ -128,12 +153,12 @@ public:
                 new_s -= res.recovered[age_segment_index][i];
             }
 
-            // The people on the first day of recovery are those that were on the last stage of infection
-            // in the previous time step plus those that recovered early during an infection stage.
-            res.recovered[age_segment_index][0] = new_r;
+            // The people on the first day of recovery are those that were on the last stage of infection (minus those who died;
+            // already accounted for) in the previous time step plus those that recovered early during an infection stage.
+            res.recovered[age_segment_index][0] = std::accumulate(recovered.begin(), recovered.end(), 0.0f);
 
             // The susceptible population does not include the recovered population
-            new_s -= new_r;
+            new_s -= std::accumulate(recovered.begin(), recovered.end(), 0.0f);
 
             if (new_s > -0.001 && new_s < 0) new_s = 0;  // double precision issues
 
@@ -185,14 +210,14 @@ public:
         // hysteresis is in effect. No modification of the correction factor map required, allowing this function to be const.
         static bool hysteresis_in_effect = false;
         static float hysteresis_mobility_correction_factor = 1.0f;
-        static float hysteresis_total_infections_higher = 0.0f; // Infection threshold of next correction factor
-        static float hysteresis_total_infection_lower = 0.0f; // Infection threshold of hysteresis adjusted current correction factor
+        static float hysteresis_infections_higher_bound = 0.0f; // Infection threshold of next correction factor
+        static float hysteresis_infections_lower_bound = 0.0f; // Infection threshold of hysteresis adjusted current correction factor
 
-        if(res.get_total_infections() > hysteresis_total_infections_higher) {
+        if(res.get_total_infections() > hysteresis_infections_higher_bound) {
             hysteresis_in_effect = false;
         }
 
-        if(hysteresis_in_effect && res.get_total_infections() >= hysteresis_total_infection_lower) {
+        if(hysteresis_in_effect && res.get_total_infections() >= hysteresis_infections_lower_bound) {
             return hysteresis_mobility_correction_factor;
         }
 
@@ -212,14 +237,14 @@ public:
                 auto next_pair_iterator = std::find(correction_factors.begin(), correction_factors.end(), pair);
                 assert(next_pair_iterator != correction_factors.end());
 
-                // If there is a next correction factor, then use it's total infection threshold
+                // If there is a next correction factor (for a higher total infection), then use it's total infection threshold
                 if(std::distance(correction_factors.begin(), next_pair_iterator) != correction_factors.size() - 1) {
                     ++next_pair_iterator;
                 }
 
                 hysteresis_in_effect = true;
-                hysteresis_total_infections_higher = next_pair_iterator->first;
-                hysteresis_total_infection_lower = pair.first - pair.second.back();
+                hysteresis_infections_higher_bound = next_pair_iterator->first;
+                hysteresis_infections_lower_bound = pair.first - pair.second.back();
                 hysteresis_mobility_correction_factor = pair.second.front();
             }
             else {

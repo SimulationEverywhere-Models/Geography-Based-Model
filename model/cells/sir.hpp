@@ -13,16 +13,18 @@ struct sir {
     std::vector<double> susceptible;
     std::vector<std::vector<double>> infected;
     std::vector<std::vector<double>> recovered;
+    std::vector<double> fatalities;
 
     // Required for the JSON library, as types used with it must be default-constructable.
     // The overloaded constructor results in a default constructor having to be manually written.
     sir() = default;
 
     sir(unsigned int popDensity, unsigned int phase, std::vector<double> susceptible,
-            std::vector<double> infected, std::vector<double> recovered, double border_length, double land_area) :
+            std::vector<double> infected, std::vector<double> recovered, double fatalities) :
                 susceptible{std::move(susceptible)},
                 infected{std::move(infected)},
-                recovered{std::move(recovered)} {
+                recovered{std::move(recovered)},
+                fatalities{fatalities} {
 
     }
 
@@ -45,6 +47,14 @@ struct sir {
     // For the get_total_XXX functions, remember that the sum of the values in each vector associated with an age group
     // is one. When looking at the population as a whole, the sum of any state vector has to be adjusted according to how
     // big of a proportion the age group contributes to a population.
+
+    double get_total_fatalities() const {
+        double total_fatalities = 0.0f;
+        for(int i = 0; i < age_group_proportions.size(); ++i) {
+            total_fatalities += fatalities[i] * age_group_proportions[i];
+        }
+        return total_fatalities;
+    }
 
     double get_total_infections() const {
         float total_infections = 0.0f;
@@ -117,7 +127,7 @@ std::ostream &operator<<(std::ostream &os, const sir &sir) {
             new_recoveries += sir.recovered.at(i).at(0) * sir.age_group_proportions.at(i);
         }
 
-        os << "<" << sir.get_total_susceptible() << "," << sir.get_total_infections() << "," << sir.get_total_recovered()       << "," << new_infections << "," << new_recoveries << ">";
+        os << "<" << sir.get_total_susceptible() << "," << sir.get_total_infections() << "," << sir.get_total_recovered() << "," << sir.get_total_fatalities() << "," << new_infections << "," << new_recoveries << ">";
     }
 
     return os;
@@ -128,7 +138,8 @@ void from_json(const nlohmann::json &json, sir &sir) {
     json.at("infected").get_to(sir.infected);
     json.at("recovered").get_to(sir.recovered);
     json.at("susceptible").get_to(sir.susceptible);
-
+    json.at("fatalities").get_to(sir.fatalities);
+    
     assert(sir.age_group_proportions.size() == sir.susceptible.size() && sir.age_group_proportions.size() == sir.infected.size()
            && sir.age_group_proportions.size() == sir.recovered.size() && "There must be an equal number of age groups between"
                                                                           "age_group_proportions, susceptible, infected, and recovered!\n");

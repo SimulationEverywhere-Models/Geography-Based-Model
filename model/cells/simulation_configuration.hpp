@@ -23,6 +23,7 @@ struct simulation_configuration
     phase_rates virulence_rates;
     phase_rates recovery_rates;
     phase_rates mobility_rates;
+    phase_rates fatality_rates;
 };
 
 void from_json(const nlohmann::json& j, simulation_configuration &v) {
@@ -32,6 +33,7 @@ void from_json(const nlohmann::json& j, simulation_configuration &v) {
     j.at("virulence_rates").get_to(v.virulence_rates);
     j.at("recovery_rates").get_to(v.recovery_rates);
     j.at("mobility_rates").get_to(v.mobility_rates);
+    j.at("fatality_rates").get_to(v.fatality_rates);
 
     std::map<std::string, std::array<float, 2>> unparsed_infection_correction_factors;
 
@@ -71,6 +73,15 @@ void from_json(const nlohmann::json& j, simulation_configuration &v) {
         }
 
         v.correction_factors.insert({infection_threshold, i.second});
+    }
+
+    for(int i = 0; i < v.recovery_rates.size(); ++i) {
+        for(int k = 0; k < v.recovery_rates[i].size(); ++k){
+            // A sum of greater than one refers to more than the entire population of an infection stage.
+            assert(v.recovery_rates[i][k] + v.fatality_rates[i][k] <= 1.0f && "The recovery rate + fatality rate cannot exceed 1!");
+        }
+        assert(v.fatality_rates[i].back() <= 1.0f && "The fatality rate cannot exceed one!"); // Assert because the recovery rate has
+                                                                                               // one less entry than the fatality rates.
     }
 }
 
