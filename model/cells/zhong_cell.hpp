@@ -38,6 +38,9 @@ public:
     phase_rates mobility_rates;
     phase_rates fatality_rates;
 
+    double hospital_infected_capacity;
+    double over_capacity_fatality_modifier;
+
     double disobedient;  // percentage of population that do not follow the quarantine restrictions
 
     // To make the parameters of the correction_factors variable more obvious
@@ -62,6 +65,8 @@ public:
 
         correction_factors = std::move(config.correction_factors);
         disobedient = config.disobedient;
+        hospital_infected_capacity = config.hospital_infected_capacity;
+        over_capacity_fatality_modifier = config.over_capacity_fatality_modifier;
 
         precDivider = config.precision;
 
@@ -94,6 +99,10 @@ public:
             for(int i = 0; i < res.get_num_infected_phases(); ++i)
             {
                 fatalities[i] += std::round(res.infected[age_segment_index][i] * fatality_rates[age_segment_index][i] * precDivider) / precDivider;
+
+                if(res.get_total_infections() > hospital_infected_capacity) {
+                    fatalities[i] *= over_capacity_fatality_modifier;
+                }
             }
 
             res.fatalities[age_segment_index] += std::accumulate(fatalities.begin(), fatalities.end(), 0.0f);

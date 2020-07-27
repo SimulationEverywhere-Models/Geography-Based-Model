@@ -24,6 +24,9 @@ struct simulation_configuration
     phase_rates recovery_rates;
     phase_rates mobility_rates;
     phase_rates fatality_rates;
+
+    double hospital_infected_capacity;
+    double over_capacity_fatality_modifier;
 };
 
 void from_json(const nlohmann::json& j, simulation_configuration &v) {
@@ -34,6 +37,8 @@ void from_json(const nlohmann::json& j, simulation_configuration &v) {
     j.at("recovery_rates").get_to(v.recovery_rates);
     j.at("mobility_rates").get_to(v.mobility_rates);
     j.at("fatality_rates").get_to(v.fatality_rates);
+    j.at("hospital_infected_capacity").get_to(v.hospital_infected_capacity);
+    j.at("over_capacity_fatality_modifier").get_to(v.over_capacity_fatality_modifier);
 
     std::map<std::string, std::array<float, 2>> unparsed_infection_correction_factors;
 
