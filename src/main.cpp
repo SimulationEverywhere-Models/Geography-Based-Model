@@ -38,13 +38,13 @@ using namespace cadmium::celldevs;
 using TIME = float;
 
 /*************** Loggers *******************/
-static ofstream out_messages("../logs/pandemic_hoya_outputs.txt");
+static ofstream out_messages("../logs/pandemic_outputs.txt");
 struct oss_sink_messages{
     static ostream& sink(){
         return out_messages;
     }
 };
-static ofstream out_state("../logs/pandemic_hoya_state.txt");
+static ofstream out_state("../logs/pandemic_state.txt");
 struct oss_sink_state{
     static ostream& sink(){
         return out_state;
