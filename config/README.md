@@ -1,6 +1,7 @@
-** Description of File(s) In This Folder **
+Description of File(s) In This Folder
+===
 
-config:
+**config:**
 
 This folder contains sample input to this program that runs simulations.
 The sample input(s) are a much smaller version of the input using real data to keep
