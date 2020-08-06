@@ -89,7 +89,7 @@ bool operator<(const sir &lhs, const sir &rhs) { return true; }
 
 std::ostream &operator<<(std::ostream &os, const sir &sir) {
 
-    bool print_specific_state_information = false;
+    bool print_specific_state_information = true;
 
     if(print_specific_state_information) {
         std::string susceptible_information;
@@ -112,9 +112,10 @@ std::ostream &operator<<(std::ostream &os, const sir &sir) {
             }
         }
 
-        os << "<" << sir.get_num_age_segments() << "," << sir.get_num_infected_phases() << "," << sir.get_num_recovered_phases();
+        // First two numbers are irrelevant when running the notebook at this time. 
+        os << "<" << sir.get_num_age_segments() << ",0" << "," << sir.get_num_infected_phases() << "," << sir.get_num_recovered_phases() << ",";
 
-        os << susceptible_information << infected_information << recovered_information << ">";
+        os << sir.get_total_susceptible() << infected_information << recovered_information << ">";
     }
     else {
 
@@ -127,7 +128,7 @@ std::ostream &operator<<(std::ostream &os, const sir &sir) {
             new_recoveries += sir.recovered.at(i).at(0) * sir.age_group_proportions.at(i);
         }
 
-        os << "<" << sir.get_total_susceptible() << "," << sir.get_total_infections() << "," << sir.get_total_recovered() << "," << sir.get_total_fatalities() << "," << new_infections << "," << new_recoveries << ">";
+        os << "<" << sir.get_total_susceptible() << "," << sir.get_total_infections() << "," << sir.get_total_recovered() << "," << new_infections << "," << new_recoveries << "," << sir.get_total_fatalities() << ">";
     }
 
     return os;
