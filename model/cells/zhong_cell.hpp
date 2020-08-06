@@ -101,7 +101,7 @@ public:
             // fatalities, or vice-versa. This would change the meaning of the input.
 
             // Equation 6e
-            for (int i = 0; i < res.get_num_recovered_phases() - 1; ++i)
+            for (int i = 0; i < res.get_num_infected_phases() - 1; ++i)
             {
                 // Calculate all of the new recovered- for every day that a population is infected, some recover.
                 recovered[i] += std::round(res.infected[age_segment_index][i] * recovery_rates[age_segment_index][i] * precDivider) / precDivider;
