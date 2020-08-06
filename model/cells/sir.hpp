@@ -112,7 +112,7 @@ std::ostream &operator<<(std::ostream &os, const sir &sir) {
             }
         }
 
-        // First two numbers are irrelevant when running the notebook at this time. 
+        // First two numbers are irrelevant when running the notebook at this time.
         os << "<" << sir.get_num_age_segments() << ",0" << "," << sir.get_num_infected_phases() << "," << sir.get_num_recovered_phases() << ",";
 
         os << sir.get_total_susceptible() << infected_information << recovered_information << ">";
