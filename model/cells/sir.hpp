@@ -100,16 +100,24 @@ std::ostream &operator<<(std::ostream &os, const sir &sir) {
             susceptible_information += "," + std::to_string(susceptible_age_segment);
         }
 
-        for(const auto &infected_age_segment : sir.infected) {
-            for (auto infected_phase : infected_age_segment) {
-                infected_information += "," + std::to_string(infected_phase);
+        for(int i = 0; i < sir.get_num_infected_phases(); ++i) {
+            float current_stage_infection = 0.0f;
+
+            for(int j = 0; j < sir.age_group_proportions.size(); ++j) {
+                current_stage_infection += sir.infected[j][i] * sir.age_group_proportions[j];
             }
+
+            infected_information += "," + std::to_string(current_stage_infection);
         }
 
-        for(const auto &recovered_age_segment : sir.recovered) {
-            for (auto recovered_phase : recovered_age_segment) {
-                recovered_information += "," + std::to_string(recovered_phase);
+        for(int i = 0; i < sir.get_num_recovered_phases(); ++i) {
+            float current_stage_recovered = 0.0f;
+
+            for(int j = 0; j < sir.age_group_proportions.size(); ++j) {
+                current_stage_recovered += sir.recovered[j][i] * sir.age_group_proportions[j];
             }
+
+            recovered_information += "," + std::to_string(current_stage_recovered);
         }
 
         // First two numbers are irrelevant when running the notebook at this time.
