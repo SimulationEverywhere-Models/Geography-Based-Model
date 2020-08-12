@@ -211,13 +211,13 @@ public:
         double inf = 0;
         sir cstate = state.current_state;
 
-        // disobedient people have a correction factor of 1. The rest of the population -> whatever in the configuration
-        float correction = disobedient + (1 - disobedient) * movement_correction_factor();
-
         // external infected
         for(auto neighbor: neighbors) {
             sir nstate = state.neighbors_state.at(neighbor);
             vicinity v = state.neighbors_vicinity.at(neighbor);
+
+            // disobedient people have a correction factor of 1. The rest of the population -> whatever in the configuration
+            float correction = disobedient + (1 - disobedient) * movement_correction_factor(v.correction_factors, nstate.get_total_infections(), v.neighbour_hysteresis_factor);
 
             for (int i = 0; i < nstate.get_num_infected_phases(); ++i) {
 
@@ -231,35 +231,25 @@ public:
         return std::min(cstate.susceptible[age_segment_index], inf);
     }
 
-    float movement_correction_factor() const {
-
-        sir res = state.current_state;
-
-        // If a state of hysteresis is entered, then the various mobility correction factors will not be iterated through.
-        // Thus the values to compare against must be stored separately.
-        // This is done to avoid having to modify the map containing the mobility correction factors.
+    float movement_correction_factor(const std::map<infection_threshold, mobility_correction_factor> &mobility_correction_factors,
+                                     float infectious_population, hysteresis_factor &hysteresisFactor) const {
 
         // For example, assume a correction factor of "0.4": [0.2, 0.1]. If the infection goes above 0.4, then the
         // correction factor of 0.2 will now be applied to total infection values above 0.3, no longer 0.4 as the
-        // hysteresis is in effect. No modification of the correction factor map required, allowing this function to be const.
-        static bool hysteresis_in_effect = false;
-        static float hysteresis_mobility_correction_factor = 1.0f;
-        static float hysteresis_infections_higher_bound = 0.0f; // Infection threshold of next correction factor
-        static float hysteresis_infections_lower_bound = 0.0f; // Infection threshold of hysteresis adjusted current correction factor
-
-        if(res.get_total_infections() > hysteresis_infections_higher_bound) {
-            hysteresis_in_effect = false;
+        // hysteresis is in effect.
+        if(infectious_population > hysteresisFactor.hysteresis_infections_higher_bound) {
+            hysteresisFactor.hysteresis_in_effect = false;
         }
 
-        if(hysteresis_in_effect && res.get_total_infections() >= hysteresis_infections_lower_bound) {
-            return hysteresis_mobility_correction_factor;
+        if(hysteresisFactor.hysteresis_in_effect && infectious_population >= hysteresisFactor.hysteresis_infections_lower_bound) {
+            return hysteresisFactor.hysteresis_mobility_correction_factor;
         }
 
-        hysteresis_in_effect = false;
+        hysteresisFactor.hysteresis_in_effect = false;
 
         float correction = 1.0f;
         for (auto const &pair: correction_factors) {
-            if (res.get_total_infections() >= pair.first) {
+            if (infectious_population >= pair.first) {
                 correction = pair.second.front();
 
                 // A hysteresis factor will be in effect until the total infection goes below the hysteresis factor;
@@ -276,10 +266,10 @@ public:
                     ++next_pair_iterator;
                 }
 
-                hysteresis_in_effect = true;
-                hysteresis_infections_higher_bound = next_pair_iterator->first;
-                hysteresis_infections_lower_bound = pair.first - pair.second.back();
-                hysteresis_mobility_correction_factor = pair.second.front();
+                hysteresisFactor.hysteresis_in_effect = true;
+                hysteresisFactor.hysteresis_infections_higher_bound = next_pair_iterator->first;
+                hysteresisFactor.hysteresis_infections_lower_bound = pair.first - pair.second.back();
+                hysteresisFactor.hysteresis_mobility_correction_factor = pair.second.front();
             }
             else {
                 break;

@@ -22,7 +22,8 @@
             ]
         },
         "default_vicinity": {
-            "correlation": 1
+            "correlation": 1,
+            "infection_correction_factors": {}
         },
         "default_config": {
             "zhong": {
@@ -57,7 +58,6 @@
                     [0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005],
                     [0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005]
                 ],
-                "infection_correction_factors": {"0.2": [0.7, 0.1], "0.4": [0.5, 0.2]},
                 "hospital_infected_capacity": 0.1,
                 "over_capacity_fatality_modifier": 1.2
             }
@@ -87,14 +87,29 @@
                 ]
             },
             "neighborhood": [
-                { "cell_id": "Country1" },
+                {
+                    "cell_id": "Country1",
+                    "vicinity":
+                    {
+                        "correlation": 1,
+                        "infection_correction_factors": {"0.2": [0.7, 0.1], "0.4": [0.5, 0.2]}
+                    }
+                },
                 {
                     "cell_id": "Country2",
-                    "vicinity": { "correlation": 0.2 }
+                    "vicinity":
+                    {
+                        "correlation": 0.2,
+                        "infection_correction_factors": {"0.2": [0.4, 0.1]}
+                    }
                 },
                 {
                     "cell_id": "Country3",
-                    "vicinity": { "correlation": 0.3 }
+                    "vicinity":
+                    {
+                        "correlation": 0.3,
+                        "infection_correction_factors": {"0.5": [0.5, 0.2]}
+                    }
                 }
             ]
         },
@@ -103,12 +118,27 @@
             "neighborhood": [
                 {
                     "cell_id": "Country1",
-                    "vicinity": { "correlation": 0.2 }
+                    "vicinity":
+                    {
+                        "correlation": 0.2,
+                        "infection_correction_factors": {"0.2": [0.4, 0.2]}
+                    }
                 },
-                { "cell_id": "Country2" },
+                {
+                    "cell_id": "Country2",
+                    "vicinity":
+                    {
+                        "correlation": 1,
+                        "infection_correction_factors": {"0.2": [0.7, 0.1], "0.4": [0.5, 0.2]}
+                    }
+                },
                 {
                     "cell_id": "Country3",
-                    "vicinity": { "correlation": 0.4 }
+                    "vicinity":
+                    {
+                        "correlation": 0.4,
+                        "infection_correction_factors": {"0.1": [0.1, 0.0]}
+                    }
                 }
             ]
         },
@@ -117,13 +147,28 @@
             "neighborhood": [
                 {
                     "cell_id": "Country1",
-                    "vicinity": { "correlation": 0.3 }
+                    "vicinity":
+                    {
+                        "correlation": 0.3,
+                        "infection_correction_factors": {"0.7": [0.3, 0.3]}
+                    }
                 },
                 {
                     "cell_id": "Country2",
-                    "vicinity": { "correlation": 0.4 }
+                    "vicinity":
+                    {
+                        "correlation": 0.4,
+                        "infection_correction_factors": {"0.6": [0.1, 0.3]}
+                    }
                 },
-                { "cell_id": "Country3" }
+                {
+                    "cell_id": "Country3",
+                    "vicinity":
+                    {
+                        "correlation": 1,
+                        "infection_correction_factors": {"0.2": [0.7, 0.1], "0.4": [0.5, 0.2]}
+                    }
+                }
             ]
         }
     ]

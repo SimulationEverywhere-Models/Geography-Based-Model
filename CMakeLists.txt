@@ -17,6 +17,6 @@ find_package(Boost COMPONENTS unit_test_framework system thread REQUIRED)
 
 file(MAKE_DIRECTORY logs)
 
-add_executable(hoya src/main.cpp model/cells/zhong_cell.hpp model/zhong_coupled.hpp model/cells/vicinity.hpp model/cells/sir.hpp model/cells/simulation_configuration.hpp)
+add_executable(hoya src/main.cpp model/cells/zhong_cell.hpp model/zhong_coupled.hpp model/cells/vicinity.hpp model/cells/sir.hpp model/cells/simulation_configuration.hpp model/cells/hysteresis_factor.h)
 
 target_link_libraries(hoya PUBLIC ${Boost_LIBRARIES})
