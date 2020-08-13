@@ -2,12 +2,12 @@
 // Created by binybrion on 7/3/20.
 //
 
-#ifndef PANDEMIC_HOYA_2002_SIMULATION_CONFIGURATION_HPP
-#define PANDEMIC_HOYA_2002_SIMULATION_CONFIGURATION_HPP
+#ifndef PANDEMIC_HOYA_2002_SIMULATION_CONFIG_HPP
+#define PANDEMIC_HOYA_2002_SIMULATION_CONFIG_HPP
 
 #include <nlohmann/json.hpp>
 
-struct simulation_configuration
+struct simulation_config
 {
     // To make the parameters of the correction_factors variable more obvious
     using infection_threshold = float;
@@ -29,9 +29,13 @@ struct simulation_configuration
     double over_capacity_fatality_modifier;
 };
 
-void from_json(const nlohmann::json& j, simulation_configuration &v) {
-
-    j.at("disobedient").get_to(v.disobedient);
+void from_json(const nlohmann::json& j, simulation_config &v) {
+    // TODO just for you to know: you can define default fields, so if it is not defined in the JSON, you take a default
+    // This is just an example, remove it if you don't like this idea
+    if (j.contains("disobedient"))
+        j.at("disobedient").get_to(v.disobedient);
+    else
+        v.disobedient = 0;
     j.at("precision").get_to(v.precision);
     j.at("virulence_rates").get_to(v.virulence_rates);
     j.at("recovery_rates").get_to(v.recovery_rates);
@@ -50,4 +54,4 @@ void from_json(const nlohmann::json& j, simulation_configuration &v) {
     }
 }
 
-#endif //PANDEMIC_HOYA_2002_SIMULATION_CONFIGURATION_HPP
+#endif //PANDEMIC_HOYA_2002_SIMULATION_CONFIG_HPP

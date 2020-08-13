@@ -8,7 +8,7 @@
 #include <functional>
 #include <cmath>
 #include <nlohmann/json.hpp>
-#include "hysteresis_factor.h"
+#include "hysteresis_factor.hpp"
 
 struct vicinity
 {

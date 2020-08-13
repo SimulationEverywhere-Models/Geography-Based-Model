@@ -15,7 +15,7 @@ This implementation adds additional features to more closely model the real worl
 Documentation
 ----
 
-See the Documentation.docx file located at the root of this repository.
+See the `Documentation.docx` file located at the root of this repository.
 
 Compiling the Program
 ---
@@ -28,7 +28,8 @@ Note: A C++17 compliant compiler is required, along with the Cadmium library (av
 
 2. Enter the following on the command line:
 
-   gcc -o ZhongExecutable -I _location_to_cadmium_/cadmium-json/include -I _location_to_cadmium_/cadmium-json/json/include -std=c++17 ./model/cells/zhong_cell.hpp ./model/zhong_coupled.hpp ./src/main.cpp -lstdc++ -lm
+   `gcc -o ZhongExecutable -I _location_to_cadmium_/cadmium-json/include -I _location_to_cadmium_/cadmium-json/json/include -std=c++17 ./model/cells/zhong_cell.hpp ./model/zhong_coupled.hpp ./src/main.cpp -lstdc++ -lm`
+   TODO can you write a Makefile? Or instead you can use CMake
 
 ----
 
@@ -40,6 +41,9 @@ To run the model:
 1. Go to parent directory with the compiled executable
 2. Create a directory called logs (if one does not already exist)
 3. Navigate to the directory with the executable and enter the following command:
-   ./named_of_executable location_to_configuration_file.json run_until_this_many_simulation_cycles
+   `./named_of_executable <location_to_configuration_file.json> [<run_until_this_many_simulation_cycles>]`
    
-   The last paramter is optional. The default is 500 simulation cycle.
+   The last parameter is optional. The default is 500 simulation cycles.
+   
+   There are no cycles in DEVS: you set the simulation time, and time advances as new events occur
+   

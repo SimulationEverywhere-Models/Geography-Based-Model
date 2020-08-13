@@ -12,7 +12,7 @@
 #include <iomanip>
 #include "vicinity.hpp"
 #include "sir.hpp"
-#include "simulation_configuration.hpp"
+#include "simulation_config.hpp"
 
 using namespace std;
 using namespace cadmium::celldevs;
@@ -28,7 +28,7 @@ public:
     using cell<T, std::string, sir, vicinity>::state;
     using cell<T, std::string, sir, vicinity>::neighbors;
 
-    using config_type = simulation_configuration;
+    using config_type = simulation_config;
 
     using phase_rates = std::vector<            // The age sub_division
                         std::vector<double>>;   // The stage of infection
@@ -55,7 +55,7 @@ public:
     zhong_cell() : cell<T, std::string, sir, vicinity>() {}
 
     zhong_cell(std::string const &cell_id, cell_unordered<vicinity> const &neighborhood, sir initial_state,
-            std::string const &delay_id, simulation_configuration config) :
+               std::string const &delay_id, simulation_config config) :
     cell<T, std::string, sir, vicinity>(cell_id, neighborhood, initial_state, delay_id) {
 
         virulence_rates = std::move(config.virulence_rates);
@@ -237,15 +237,15 @@ public:
         // For example, assume a correction factor of "0.4": [0.2, 0.1]. If the infection goes above 0.4, then the
         // correction factor of 0.2 will now be applied to total infection values above 0.3, no longer 0.4 as the
         // hysteresis is in effect.
-        if(infectious_population > hysteresisFactor.hysteresis_infections_higher_bound) {
-            hysteresisFactor.hysteresis_in_effect = false;
+        if(infectious_population > hysteresisFactor.infections_higher_bound) {
+            hysteresisFactor.in_effect = false;
         }
 
-        if(hysteresisFactor.hysteresis_in_effect && infectious_population >= hysteresisFactor.hysteresis_infections_lower_bound) {
-            return hysteresisFactor.hysteresis_mobility_correction_factor;
+        if(hysteresisFactor.in_effect && infectious_population >= hysteresisFactor.infections_lower_bound) {
+            return hysteresisFactor.mobility_correction_factor;
         }
 
-        hysteresisFactor.hysteresis_in_effect = false;
+        hysteresisFactor.in_effect = false;
 
         float correction = 1.0f;
         for (auto const &pair: correction_factors) {
@@ -266,10 +266,10 @@ public:
                     ++next_pair_iterator;
                 }
 
-                hysteresisFactor.hysteresis_in_effect = true;
-                hysteresisFactor.hysteresis_infections_higher_bound = next_pair_iterator->first;
-                hysteresisFactor.hysteresis_infections_lower_bound = pair.first - pair.second.back();
-                hysteresisFactor.hysteresis_mobility_correction_factor = pair.second.front();
+                hysteresisFactor.in_effect = true;
+                hysteresisFactor.infections_higher_bound = next_pair_iterator->first;
+                hysteresisFactor.infections_lower_bound = pair.first - pair.second.back();
+                hysteresisFactor.mobility_correction_factor = pair.second.front();
             }
             else {
                 break;
