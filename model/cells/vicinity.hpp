@@ -62,7 +62,7 @@ void from_json(const nlohmann::json &json, vicinity &vicinity)
         if(i.second.back() < 0.0f || i.second.back() > infection_threshold) {
             std::string error_message = "Invalid hysteresis specified for the key: " + i.first;
             error_message += " The hysteresis value (" + std::to_string(i.second.back()) + ") must not exceed:";
-            error_message += "(" + std::to_string(i.second.front()) + ")";
+            error_message += "(" + i.first + ")";
 
             throw std::runtime_error{error_message};
         }

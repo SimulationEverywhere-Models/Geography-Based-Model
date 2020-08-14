@@ -7,7 +7,7 @@
 
 #include <nlohmann/json.hpp>
 #include <cadmium/celldevs/coupled/cells_coupled.hpp>
-#include "cells/zhong_cell.hpp"
+#include "cells/geographical_cell.hpp"
 
 template <typename T>
 class zhong_coupled : public cadmium::celldevs::cells_coupled<T, std::string, sir, vicinity>
@@ -28,8 +28,8 @@ class zhong_coupled : public cadmium::celldevs::cells_coupled<T, std::string, si
         {
             if (cell_type == "zhong")
             {
-                auto conf = config.get<typename zhong_cell<T>::config_type>();
-                this->template add_cell<zhong_cell>(cell_id, neighborhood, initial_state, delay_id, conf);
+                auto conf = config.get<typename geographical_cell<T>::config_type>();
+                this->template add_cell<geographical_cell>(cell_id, neighborhood, initial_state, delay_id, conf);
             } else throw std::bad_typeid();
         }
 };

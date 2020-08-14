@@ -18,7 +18,7 @@ using namespace std;
 using namespace cadmium::celldevs;
 
 template <typename T>
-class zhong_cell : public cell<T, std::string, sir, vicinity> {
+class geographical_cell : public cell<T, std::string, sir, vicinity> {
 public:
 
     template <typename X>
@@ -48,14 +48,12 @@ public:
     using mobility_correction_factor = std::array<float, 2>; // The first value is the mobility correction factor;
                                                              // The second one is the hysteresis factor.
 
-    std::map<infection_threshold, mobility_correction_factor> correction_factors;
-
     int precDivider;
 
-    zhong_cell() : cell<T, std::string, sir, vicinity>() {}
+    geographical_cell() : cell<T, std::string, sir, vicinity>() {}
 
-    zhong_cell(std::string const &cell_id, cell_unordered<vicinity> const &neighborhood, sir initial_state,
-               std::string const &delay_id, simulation_config config) :
+    geographical_cell(std::string const &cell_id, cell_unordered<vicinity> const &neighborhood, sir initial_state,
+                      std::string const &delay_id, simulation_config config) :
     cell<T, std::string, sir, vicinity>(cell_id, neighborhood, initial_state, delay_id) {
 
         virulence_rates = std::move(config.virulence_rates);
@@ -63,7 +61,6 @@ public:
         mobility_rates = std::move(config.mobility_rates);
         fatality_rates = std::move(config.fatality_rates);
 
-        correction_factors = std::move(config.correction_factors);
         disobedient = config.disobedient;
         hospital_infected_capacity = config.hospital_infected_capacity;
         over_capacity_fatality_modifier = config.over_capacity_fatality_modifier;
@@ -248,7 +245,7 @@ public:
         hysteresisFactor.in_effect = false;
 
         float correction = 1.0f;
-        for (auto const &pair: correction_factors) {
+        for (auto const &pair: mobility_correction_factors) {
             if (infectious_population >= pair.first) {
                 correction = pair.second.front();
 
@@ -258,11 +255,11 @@ public:
                 // Get the threshold of the next correction factor; otherwise the current correction factor can remain in
                 // effect if the total infections never goes below the lower bound hysteresis factor, but also if it goes
                 // above the original total infection threshold!
-                auto next_pair_iterator = std::find(correction_factors.begin(), correction_factors.end(), pair);
-                assert(next_pair_iterator != correction_factors.end());
+                auto next_pair_iterator = std::find(mobility_correction_factors.begin(), mobility_correction_factors.end(), pair);
+                assert(next_pair_iterator != mobility_correction_factors.end());
 
                 // If there is a next correction factor (for a higher total infection), then use it's total infection threshold
-                if(std::distance(correction_factors.begin(), next_pair_iterator) != correction_factors.size() - 1) {
+                if(std::distance(mobility_correction_factors.begin(), next_pair_iterator) != mobility_correction_factors.size() - 1) {
                     ++next_pair_iterator;
                 }
 
