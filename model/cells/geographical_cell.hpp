@@ -27,6 +27,7 @@ public:
     using cell<T, std::string, sir, vicinity>::simulation_clock;
     using cell<T, std::string, sir, vicinity>::state;
     using cell<T, std::string, sir, vicinity>::neighbors;
+    using cell<T, std::string, sir, vicinity>::cell_id;
 
     using config_type = simulation_config;
 
@@ -208,20 +209,38 @@ public:
         double inf = 0;
         sir cstate = state.current_state;
 
+        // Right now assume a reasonable default value- the actual movement correction factor experienced by the current
+        // cell will be found in the below for-loop.
+        double current_cell_correction_factor = 1.0f;
+
+        for(auto neighbor : neighbors) {
+            if(cell_id == neighbor) {
+                sir nstate = state.neighbors_state.at(neighbor);
+                vicinity v = state.neighbors_vicinity.at(neighbor);
+
+                // disobedient people have a correction factor of 1. The rest of the population -> whatever in the configuration
+                current_cell_correction_factor = disobedient + (1 - disobedient) * movement_correction_factor(v.correction_factors, nstate.get_total_infections(), v.neighbour_hysteresis_factor);
+            }
+        }
+
         // external infected
         for(auto neighbor: neighbors) {
             sir nstate = state.neighbors_state.at(neighbor);
             vicinity v = state.neighbors_vicinity.at(neighbor);
 
             // disobedient people have a correction factor of 1. The rest of the population -> whatever in the configuration
-            float correction = disobedient + (1 - disobedient) * movement_correction_factor(v.correction_factors, nstate.get_total_infections(), v.neighbour_hysteresis_factor);
+            double neighbor_correction = disobedient + (1 - disobedient) * movement_correction_factor(v.correction_factors, nstate.get_total_infections(), v.neighbour_hysteresis_factor);
+
+            // Logically makes sense to require neighboring cells to follow the movement restriction that is currently
+            // in place in the current cell if the current cell has a more restrictive movement.
+            neighbor_correction = std::min(current_cell_correction_factor, neighbor_correction);
 
             for (int i = 0; i < nstate.get_num_infected_phases(); ++i) {
 
                 inf += v.correlation * mobility_rates[age_segment_index][i] * // variable Cij
                        virulence_rates[age_segment_index][i] * // variable lambda
                        cstate.susceptible[age_segment_index] * nstate.get_total_infections() * // variables Si and Ij, respectively
-                       correction;  // New infections may be slightly fewer if there are mobility restrictions
+                       neighbor_correction;  // New infections may be slightly fewer if there are mobility restrictions
             }
         }
 
