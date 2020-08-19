@@ -23,20 +23,13 @@ struct simulation_config
     double over_capacity_fatality_modifier;
 };
 
-void from_json(const nlohmann::json& j, simulation_config &v) {
-    // TODO just for you to know: you can define default fields, so if it is not defined in the JSON, you take a default
-    // This is just an example, remove it if you don't like this idea
-    if (j.contains("disobedient"))
-        j.at("disobedient").get_to(v.disobedient);
-    else
-        v.disobedient = 0;
-    j.at("precision").get_to(v.precision);
-    j.at("virulence_rates").get_to(v.virulence_rates);
-    j.at("recovery_rates").get_to(v.recovery_rates);
-    j.at("mobility_rates").get_to(v.mobility_rates);
-    j.at("fatality_rates").get_to(v.fatality_rates);
-    j.at("hospital_infected_capacity").get_to(v.hospital_infected_capacity);
-    j.at("over_capacity_fatality_modifier").get_to(v.over_capacity_fatality_modifier);
+void from_json(const nlohmann::json& json, simulation_config &v) {
+
+    json.at("precision").get_to(v.precision);
+    json.at("virulence_rates").get_to(v.virulence_rates);
+    json.at("recovery_rates").get_to(v.recovery_rates);
+    json.at("mobility_rates").get_to(v.mobility_rates);
+    json.at("fatality_rates").get_to(v.fatality_rates);
 
     for(int i = 0; i < v.recovery_rates.size(); ++i) {
         for(int k = 0; k < v.recovery_rates[i].size(); ++k){

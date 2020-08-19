@@ -10,11 +10,11 @@
 #include "cells/geographical_cell.hpp"
 
 template <typename T>
-class zhong_coupled : public cadmium::celldevs::cells_coupled<T, std::string, sir, vicinity>
+class geographical_coupled : public cadmium::celldevs::cells_coupled<T, std::string, sir, vicinity>
 {
     public:
 
-        explicit zhong_coupled(std::string const &id) : cells_coupled<T, std::string, sir, vicinity>(id)
+        explicit geographical_coupled(std::string const &id) : cells_coupled<T, std::string, sir, vicinity>(id)
         {}
 
         template<typename X>

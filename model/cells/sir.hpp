@@ -7,6 +7,7 @@
 
 #include <iostream>
 #include <nlohmann/json.hpp>
+#include "hysteresis_factor.hpp"
 
 struct sir {
     std::vector<double> age_group_proportions;
@@ -14,6 +15,11 @@ struct sir {
     std::vector<std::vector<double>> infected;
     std::vector<std::vector<double>> recovered;
     std::vector<double> fatalities;
+    std::unordered_map<std::string, hysteresis_factor> hysteresis_factors;
+
+    double disobedient;
+    double hospital_infected_capacity;
+    double over_capacity_fatality_modifier;
 
     // Required for the JSON library, as types used with it must be default-constructable.
     // The overloaded constructor results in a default constructor having to be manually written.
@@ -142,15 +148,18 @@ std::ostream &operator<<(std::ostream &os, const sir &sir) {
     return os;
 }
 
-void from_json(const nlohmann::json &json, sir &sir) {
-    json.at("age_group_proportions").get_to(sir.age_group_proportions);
-    json.at("infected").get_to(sir.infected);
-    json.at("recovered").get_to(sir.recovered);
-    json.at("susceptible").get_to(sir.susceptible);
-    json.at("fatalities").get_to(sir.fatalities);
+void from_json(const nlohmann::json &json, sir &current_sir) {
+    json.at("age_group_proportions").get_to(current_sir.age_group_proportions);
+    json.at("infected").get_to(current_sir.infected);
+    json.at("recovered").get_to(current_sir.recovered);
+    json.at("susceptible").get_to(current_sir.susceptible);
+    json.at("fatalities").get_to(current_sir.fatalities);
+    json.at("disobedient").get_to(current_sir.disobedient);
+    json.at("hospital_infected_capacity").get_to(current_sir.hospital_infected_capacity);
+    json.at("over_capacity_fatality_modifier").get_to(current_sir.over_capacity_fatality_modifier);
     
-    assert(sir.age_group_proportions.size() == sir.susceptible.size() && sir.age_group_proportions.size() == sir.infected.size()
-           && sir.age_group_proportions.size() == sir.recovered.size() && "There must be an equal number of age groups between"
+    assert(current_sir.age_group_proportions.size() == current_sir.susceptible.size() && current_sir.age_group_proportions.size() == current_sir.infected.size()
+           && current_sir.age_group_proportions.size() == current_sir.recovered.size() && "There must be an equal number of age groups between"
                                                                           "age_group_proportions, susceptible, infected, and recovered!\n");
 }
 

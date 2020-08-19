@@ -29,7 +29,7 @@
 #include <cadmium/modeling/dynamic_coupled.hpp>
 #include <cadmium/engine/pdevs_dynamic_runner.hpp>
 #include <cadmium/logger/common_loggers.hpp>
-#include "../model/zhong_coupled.hpp"
+#include "../model/geographical_coupled.hpp"
 
 using namespace std;
 using namespace cadmium;
@@ -66,12 +66,12 @@ int main(int argc, char ** argv) {
         return -1;
     }
 
-    zhong_coupled<TIME> test = zhong_coupled<TIME>("pandemic_hoya");
+    geographical_coupled<TIME> test = geographical_coupled<TIME>("pandemic_hoya");
     std::string scenario_config_file_path = argv[1];
     test.add_cells_json(scenario_config_file_path);
     test.couple_cells();
 
-    std::shared_ptr<cadmium::dynamic::modeling::coupled<TIME>> t = std::make_shared<zhong_coupled<TIME>>(test);
+    std::shared_ptr<cadmium::dynamic::modeling::coupled<TIME>> t = std::make_shared<geographical_coupled<TIME>>(test);
 
     cadmium::dynamic::engine::runner<TIME, logger_top> r(t, {0});
     float sim_time = (argc > 2)? atof(argv[2]) : 500;

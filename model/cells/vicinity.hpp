@@ -17,7 +17,6 @@ struct vicinity
     // The second one is the hysteresis factor.
 
     std::map<infection_threshold, mobility_correction_factor> correction_factors;
-    hysteresis_factor neighbour_hysteresis_factor;
 
     double correlation = 1.0f;
 
