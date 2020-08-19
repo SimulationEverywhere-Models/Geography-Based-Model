@@ -15,11 +15,11 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/bin)
 get_filename_component(cadmium "../cadmium/json" REALPATH)
 
 if(EXISTS "${cadmium}")
-    message("Not found")
+    message("Cadmium not found")
     include_directories(../cadmium/include)
     include_directories(../cadmium/json/include)
 else()
-    message("Found cadmium")
+    message("Cadmium found")
     include_directories(../../cadmium/include)
     include_directories(../../cadmium/json/include)
 endif()
@@ -29,6 +29,6 @@ find_package(Boost COMPONENTS unit_test_framework system thread REQUIRED)
 
 file(MAKE_DIRECTORY logs)
 
-add_executable(pandemic-geographical_model src/main.cpp model/cells/geographical_cell.hpp model/zhong_coupled.hpp model/cells/vicinity.hpp model/cells/sir.hpp model/cells/simulation_config.hpp model/cells/hysteresis_factor.hpp)
+add_executable(pandemic-geographical_model src/main.cpp)
 
 target_link_libraries(pandemic-geographical_model PUBLIC ${Boost_LIBRARIES})

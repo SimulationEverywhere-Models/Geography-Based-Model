@@ -49,12 +49,12 @@ public:
     using mobility_correction_factor = std::array<float, 2>; // The first value is the mobility correction factor;
                                                              // The second one is the hysteresis factor.
 
-    int precDivider;
+    int prec_divider;
 
     geographical_cell() : cell<T, std::string, sir, vicinity>() {}
 
-    geographical_cell(std::string const &cell_id, cell_unordered<vicinity> const &neighborhood, sir initial_state,
-                      std::string const &delay_id, simulation_config config) :
+    geographical_cell(std::string const &cell_id, cell_unordered<vicinity> const &neighborhood,
+                      sir const &initial_state, std::string const &delay_id, simulation_config config) :
     cell<T, std::string, sir, vicinity>(cell_id, neighborhood, initial_state, delay_id) {
 
         virulence_rates = std::move(config.virulence_rates);
@@ -66,13 +66,12 @@ public:
         hospital_infected_capacity = config.hospital_infected_capacity;
         over_capacity_fatality_modifier = config.over_capacity_fatality_modifier;
 
-        precDivider = config.precision;
+        prec_divider = config.precision;
 
         assert(virulence_rates.size() == recovery_rates.size() && virulence_rates.size() == mobility_rates.size() &&
                "\n\nThere must be an equal number of age segments between all configuration rates.\n\n");
     }
 
-    // user must define this function. It returns the next cell state and its corresponding timeout
     sir local_computation() const override {
 
         sir res = state.current_state;
@@ -82,7 +81,7 @@ public:
         // age group contributes to the population does not need to be taken into account.
         for(int age_segment_index = 0; age_segment_index < res.get_num_age_segments(); ++age_segment_index) {
 
-            double new_i = std::round(new_infections(age_segment_index) * precDivider) / precDivider;
+            double new_i = std::round(new_infections(age_segment_index) * prec_divider) / prec_divider;
 
             // Of the population that is on the last day of the infection, they are now considered recovered.
             std::vector<double> recovered(res.get_num_infected_phases(), 0.0f);
@@ -102,13 +101,13 @@ public:
             for (int i = 0; i < res.get_num_infected_phases() - 1; ++i)
             {
                 // Calculate all of the new recovered- for every day that a population is infected, some recover.
-                recovered[i] += std::round(res.infected[age_segment_index][i] * recovery_rates[age_segment_index][i] * precDivider) / precDivider;
+                recovered[i] += std::round(res.infected[age_segment_index][i] * recovery_rates[age_segment_index][i] * prec_divider) / prec_divider;
             }
 
             // Calculate all those who have died during an infection stage.
             for(int i = 0; i < res.get_num_infected_phases(); ++i)
             {
-                fatalities[i] += std::round(res.infected[age_segment_index][i] * fatality_rates[age_segment_index][i] * precDivider) / precDivider;
+                fatalities[i] += std::round(res.infected[age_segment_index][i] * fatality_rates[age_segment_index][i] * prec_divider) / prec_divider;
 
                 if(res.get_total_infections() > hospital_infected_capacity) {
                     fatalities[i] *= over_capacity_fatality_modifier;
@@ -161,7 +160,7 @@ public:
                 curr_inf -= recovered[i - 1];
                 curr_inf -= fatalities[i - 1];
 
-                curr_inf = std::round(curr_inf * precDivider) / precDivider;
+                curr_inf = std::round(curr_inf * prec_divider) / prec_divider;
 
                 // The amount of susceptible does not include the infected population
                 new_s -= curr_inf;
@@ -207,21 +206,16 @@ public:
 
     double new_infections(unsigned int age_segment_index) const {
         double inf = 0;
-        sir cstate = state.current_state;
+        sir const cstate = state.current_state;
 
         // Right now assume a reasonable default value- the actual movement correction factor experienced by the current
         // cell will be found in the below for-loop.
-        double current_cell_correction_factor = 1.0f;
-
-        for(auto neighbor : neighbors) {
-            if(cell_id == neighbor) {
-                sir nstate = state.neighbors_state.at(neighbor);
-                vicinity v = state.neighbors_vicinity.at(neighbor);
-
-                // disobedient people have a correction factor of 1. The rest of the population -> whatever in the configuration
-                current_cell_correction_factor = disobedient + (1 - disobedient) * movement_correction_factor(v.correction_factors, nstate.get_total_infections(), v.neighbour_hysteresis_factor);
-            }
-        }
+        // TODO What about this? We remove a for loop (but I assume that the cell is part of its own neighborhood)
+        vicinity self_vicinity = state.neighbors_vicinity.at(cell_id);
+        double current_cell_correction_factor = disobedient +
+            (1 - disobedient) * movement_correction_factor(self_vicinity.correction_factors,
+                                                           state.neighbors_state.at(cell_id).get_total_infections(),
+                                                           self_vicinity.neighbour_hysteresis_factor);
 
         // external infected
         for(auto neighbor: neighbors) {
@@ -229,24 +223,28 @@ public:
             vicinity v = state.neighbors_vicinity.at(neighbor);
 
             // disobedient people have a correction factor of 1. The rest of the population -> whatever in the configuration
-            double neighbor_correction = disobedient + (1 - disobedient) * movement_correction_factor(v.correction_factors, nstate.get_total_infections(), v.neighbour_hysteresis_factor);
+            // TODO we are considering that the percentage of disobidient is the same for every cell
+            // TODO as future work, we should consider moving disobedients to the state perhaps?
+            double neighbor_correction = disobedient + (1 - disobedient) * movement_correction_factor(v.correction_factors,
+                                                                                                      nstate.get_total_infections(),
+                                                                                                      v.neighbour_hysteresis_factor);
 
             // Logically makes sense to require neighboring cells to follow the movement restriction that is currently
             // in place in the current cell if the current cell has a more restrictive movement.
+            // TODO I like this
             neighbor_correction = std::min(current_cell_correction_factor, neighbor_correction);
 
             for (int i = 0; i < nstate.get_num_infected_phases(); ++i) {
-
                 inf += v.correlation * mobility_rates[age_segment_index][i] * // variable Cij
                        virulence_rates[age_segment_index][i] * // variable lambda
                        cstate.susceptible[age_segment_index] * nstate.get_total_infections() * // variables Si and Ij, respectively
                        neighbor_correction;  // New infections may be slightly fewer if there are mobility restrictions
             }
         }
-
         return std::min(cstate.susceptible[age_segment_index], inf);
     }
 
+    // TODO here you modify the hysteresis factor, but the modification will not be stored
     float movement_correction_factor(const std::map<infection_threshold, mobility_correction_factor> &mobility_correction_factors,
                                      float infectious_population, hysteresis_factor &hysteresisFactor) const {
 
