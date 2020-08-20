@@ -9,7 +9,7 @@
 
 struct simulation_config
 {
-    int precision;
+    int prec_divider;
     using phase_rates = std::vector<            // The age sub_division
                         std::vector<double>>;   // The stage of infection
 
@@ -23,7 +23,7 @@ struct simulation_config
 
 void from_json(const nlohmann::json& json, simulation_config &v) {
 
-    json.at("precision").get_to(v.precision);
+    json.at("precision").get_to(v.prec_divider);
     json.at("virulence_rates").get_to(v.virulence_rates);
     json.at("recovery_rates").get_to(v.recovery_rates);
     json.at("mobility_rates").get_to(v.mobility_rates);

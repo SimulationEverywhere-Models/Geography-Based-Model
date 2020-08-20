@@ -62,7 +62,7 @@ public:
         mobility_rates = std::move(config.mobility_rates);
         fatality_rates = std::move(config.fatality_rates);
 
-        prec_divider = config.precision;  // TODO change config to prec_divider (to match the nomenclature)
+        prec_divider = config.prec_divider;
         SIIRS_model = config.SIIRS_model;
 
         assert(virulence_rates.size() == recovery_rates.size() && virulence_rates.size() == mobility_rates.size() &&
@@ -79,63 +79,21 @@ public:
         for(int age_segment_index = 0; age_segment_index < res.get_num_age_segments(); ++age_segment_index) {
 
             double new_i = std::round(new_infections(age_segment_index, res) * prec_divider) / prec_divider;
-            // TODO make equivalent functions for new_recovered and new_fatalities? more "atomic"
-
-            // Of the population that is on the last day of the infection, they are now considered recovered.
-            std::vector<double> recovered(res.get_num_infected_phases(), 0.0f);
-            recovered.back() = res.infected[age_segment_index].back();
-
-            std::vector<double> fatalities(res.get_num_infected_phases(), 0.0f);
-
-            // The susceptible population is smaller due to previous deaths
-            double new_s = 1 - res.fatalities[age_segment_index];
 
             // Note: Remember that these recoveries and fatalities are from the previous simulation cycle. Thus there is an ordering
             // issue- recovery rate and fatality rates specify a percentage of the infected at a certain stage. As a result
             // the code cannot for example, calculate recovery, change the infected stage population, and then calculate
             // fatalities, or vice-versa. This would change the meaning of the input.
+            // This means that, due to how the code works, calculate recovered BEFORE fatalities.
 
-            // Equation 6e
-            for (int i = 0; i < res.get_num_infected_phases() - 1; ++i)
-            {
-                // Calculate all of the new recovered- for every day that a population is infected, some recover.
-                recovered[i] += std::round(res.infected[age_segment_index][i] * recovery_rates[age_segment_index][i] * prec_divider) / prec_divider;
-            }
+            std::vector<double> recovered = new_recoveries(res, age_segment_index);
 
-            // Calculate all those who have died during an infection stage.
-            for(int i = 0; i < res.get_num_infected_phases(); ++i)
-            {
-                fatalities[i] += std::round(res.infected[age_segment_index][i] * fatality_rates[age_segment_index][i] * prec_divider) / prec_divider;
-
-                if(res.get_total_infections() > res.hospital_capacity) {
-                    fatalities[i] *= res.fatality_modifier;
-
-                    // Any stage before last stage of infection
-                    if(i != res.get_num_infected_phases() - 1) {
-                        // There can't be more fatalities than the number of people who are infected at a stage plus
-                        // those who recover at that stage
-                        if(fatalities[i] > (res.infected[age_segment_index][i] - recovered[i])) {
-                            fatalities[i] = res.infected[age_segment_index][i] - recovered[i];
-                        }
-                    }
-                    // Last stage of infection
-                    else {
-                        // Since the number of recovered individuals on the first day of recovery was already set to be
-                        // the number of people on the last stage of infection, the above if-branch will always set
-                        // fatalities on the last stage of infection equal to 0. Thus for the last stage of infection,
-                        // fatalities are capped to the number of people who are on the last stage of infected.
-                        // The logic of this branch is a result of the note above.
-                        if(fatalities.back() > res.infected[age_segment_index].back()) {
-                            fatalities[i] = res.infected[age_segment_index].back();
-                        }
-                    }
-                }
-            }
+            std::vector<double> fatalities = new_fatalities(res, age_segment_index, recovered);
 
             res.fatalities[age_segment_index] += std::accumulate(fatalities.begin(), fatalities.end(), 0.0f);
 
-            // The susceptible population does not include deaths
-            new_s -= std::accumulate(fatalities.begin(), fatalities.end(), 0.0f);
+            // The susceptible population is smaller due to previous deaths
+            double new_s = 1 - res.fatalities[age_segment_index];
 
             // So far, it was assumed that on the last day of infection, all recovered. But this is not true- have to account
             // for those who died on the last day of infection.
@@ -250,6 +208,53 @@ public:
             }
         }
         return std::min(cstate.susceptible[age_segment_index], inf);
+    }
+
+    std::vector<double> new_recoveries(const sir &current_state, unsigned int age_segment_index) const {
+        std::vector<double> recovered(current_state.get_num_infected_phases(), 0.0f);
+        recovered.back() = current_state.infected[age_segment_index].back();
+
+        for (int i = 0; i < current_state.get_num_infected_phases() - 1; ++i) {
+            // Calculate all of the new recovered- for every day that a population is infected, some recover.
+            recovered[i] += std::round(current_state.infected[age_segment_index][i] * recovery_rates[age_segment_index][i] * prec_divider) / prec_divider;
+        }
+
+        return recovered;
+    }
+
+    std::vector<double> new_fatalities(const sir &current_state, unsigned int age_segment_index, const std::vector<double> recovered) const {
+        std::vector<double> fatalities(current_state.get_num_infected_phases(), 0.0f);
+
+        // Calculate all those who have died during an infection stage.
+        for(int i = 0; i < current_state.get_num_infected_phases(); ++i) {
+            fatalities[i] += std::round(current_state.infected[age_segment_index][i] * fatality_rates[age_segment_index][i] * prec_divider) / prec_divider;
+
+            if(current_state.get_total_infections() > current_state.hospital_capacity) {
+                fatalities[i] *= current_state.fatality_modifier;
+
+                // Any stage before last stage of infection
+                if(i != current_state.get_num_infected_phases() - 1) {
+                    // There can't be more fatalities than the number of people who are infected at a stage plus
+                    // those who recover at that stage
+                    if(fatalities[i] > (current_state.infected[age_segment_index][i] - recovered[i])) {
+                        fatalities[i] = current_state.infected[age_segment_index][i] - recovered[i];
+                    }
+                }
+                    // Last stage of infection
+                else {
+                    // Since the number of recovered individuals on the first day of recovery was already set to be
+                    // the number of people on the last stage of infection, the above if-branch will always set
+                    // fatalities on the last stage of infection equal to 0. Thus for the last stage of infection,
+                    // fatalities are capped to the number of people who are on the last stage of infected.
+                    // The logic of this branch is a result of the note above.
+                    if(fatalities.back() > current_state.infected[age_segment_index].back()) {
+                        fatalities[i] = current_state.infected[age_segment_index].back();
+                    }
+                }
+            }
+        }
+
+        return fatalities;
     }
 
     float movement_correction_factor(const std::map<infection_threshold, mobility_correction_factor> &mobility_correction_factors,
