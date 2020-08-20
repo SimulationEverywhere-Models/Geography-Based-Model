@@ -9,7 +9,6 @@
 
 struct simulation_config
 {
-    double disobedient;
     int precision;
     using phase_rates = std::vector<            // The age sub_division
                         std::vector<double>>;   // The stage of infection
@@ -19,8 +18,7 @@ struct simulation_config
     phase_rates mobility_rates;
     phase_rates fatality_rates;
 
-    double hospital_infected_capacity;
-    double over_capacity_fatality_modifier;
+    bool SIIRS_model = true;
 };
 
 void from_json(const nlohmann::json& json, simulation_config &v) {
@@ -30,6 +28,7 @@ void from_json(const nlohmann::json& json, simulation_config &v) {
     json.at("recovery_rates").get_to(v.recovery_rates);
     json.at("mobility_rates").get_to(v.mobility_rates);
     json.at("fatality_rates").get_to(v.fatality_rates);
+    json.at("SIIRS_model").get_to(v.SIIRS_model);
 
     for(int i = 0; i < v.recovery_rates.size(); ++i) {
         for(int k = 0; k < v.recovery_rates[i].size(); ++k){

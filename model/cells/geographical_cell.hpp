@@ -45,6 +45,7 @@ public:
                                                              // The second one is the hysteresis factor.
 
     int prec_divider;
+    bool SIIRS_model = true;
 
     geographical_cell() : cell<T, std::string, sir, vicinity>() {}
 
@@ -62,6 +63,7 @@ public:
         fatality_rates = std::move(config.fatality_rates);
 
         prec_divider = config.precision;  // TODO change config to prec_divider (to match the nomenclature)
+        SIIRS_model = config.SIIRS_model;
 
         assert(virulence_rates.size() == recovery_rates.size() && virulence_rates.size() == mobility_rates.size() &&
                "\n\nThere must be an equal number of age segments between all configuration rates.\n\n");
@@ -170,11 +172,26 @@ public:
             // The susceptible population does those that just became infected
             new_s -= new_i;
 
+            int recovered_index = res.get_num_recovered_phases() - 1;
+
+            if(!SIIRS_model) {
+                // Add the population on the second last day of recovery to the population on the last day of recovery.
+                // This entire population on the last day of recovery is then subtracted from the susceptible population
+                // to take into account that the population on the last day of recovery will not be subtracted from the susceptible
+                // population in the Equation 6a for loop.
+                res.recovered.at(age_segment_index).back() += res.recovered.at(age_segment_index).at(res.get_num_recovered_phases() - 2);
+                new_s -= res.recovered.at(age_segment_index).back();
+                // Avoid processing the population on the last day of recovery in the equation 6a for loop. This will
+                // update all stages of recovery population except the last one, which grows with every time step
+                // as it is only added to from the population on the second last day of recovery.
+                recovered_index -= 1;
+            }
+
             // Equation 6a
-            for (int i = res.get_num_recovered_phases() - 1; i > 0; --i)
+            for(int i = recovered_index; i > 0; --i)
             {
                 // Each day of the recovered is the value of the previous day. The population on the last day is
-                // now susceptible; this is implicitly done already as the susceptible value was set to 1.0 and the
+                // now susceptible (assuming a SIIRS model); this is implicitly done already as the susceptible value was set to 1.0 and the
                 // population on the last day of recovery is never subtracted from the susceptible value.
                 res.recovered[age_segment_index][i] = res.recovered[age_segment_index][i - 1];
                 new_s -= res.recovered[age_segment_index][i];
