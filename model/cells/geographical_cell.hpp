@@ -61,7 +61,7 @@ public:
         mobility_rates = std::move(config.mobility_rates);
         fatality_rates = std::move(config.fatality_rates);
 
-        prec_divider = config.precision;
+        prec_divider = config.precision;  // TODO change config to prec_divider (to match the nomenclature)
 
         assert(virulence_rates.size() == recovery_rates.size() && virulence_rates.size() == mobility_rates.size() &&
                "\n\nThere must be an equal number of age segments between all configuration rates.\n\n");
@@ -77,6 +77,7 @@ public:
         for(int age_segment_index = 0; age_segment_index < res.get_num_age_segments(); ++age_segment_index) {
 
             double new_i = std::round(new_infections(age_segment_index, res) * prec_divider) / prec_divider;
+            // TODO make equivalent functions for new_recovered and new_fatalities? more "atomic"
 
             // Of the population that is on the last day of the infection, they are now considered recovered.
             std::vector<double> recovered(res.get_num_infected_phases(), 0.0f);
@@ -104,8 +105,8 @@ public:
             {
                 fatalities[i] += std::round(res.infected[age_segment_index][i] * fatality_rates[age_segment_index][i] * prec_divider) / prec_divider;
 
-                if(res.get_total_infections() > res.hospital_infected_capacity) {
-                    fatalities[i] *= res.over_capacity_fatality_modifier;
+                if(res.get_total_infections() > res.hospital_capacity) {
+                    fatalities[i] *= res.fatality_modifier;
 
                     // Any stage before last stage of infection
                     if(i != res.get_num_infected_phases() - 1) {
@@ -275,12 +276,10 @@ public:
                 hysteresisFactor.infections_higher_bound = next_pair_iterator->first;
                 hysteresisFactor.infections_lower_bound = pair.first - pair.second.back();
                 hysteresisFactor.mobility_correction_factor = pair.second.front();
-            }
-            else {
+            } else {
                 break;
             }
         }
-
         return correction;
     }
 };

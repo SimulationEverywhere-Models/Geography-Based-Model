@@ -18,21 +18,18 @@ struct sir {
     std::unordered_map<std::string, hysteresis_factor> hysteresis_factors;
 
     double disobedient;
-    double hospital_infected_capacity;
-    double over_capacity_fatality_modifier;
+    double hospital_capacity;
+    double fatality_modifier;
 
     // Required for the JSON library, as types used with it must be default-constructable.
     // The overloaded constructor results in a default constructor having to be manually written.
     sir() = default;
 
-    sir(unsigned int popDensity, unsigned int phase, std::vector<double> susceptible,
-            std::vector<double> infected, std::vector<double> recovered, double fatalities) :
-                susceptible{std::move(susceptible)},
-                infected{std::move(infected)},
-                recovered{std::move(recovered)},
-                fatalities{fatalities} {
-
-    }
+    sir(std::vector<double> susceptible, std::vector<double> infected, std::vector<double> recovered,
+        double fatalities, double disobedient, double hospital_capacity, double fatality_modifier) :  // TODO isn't fatalities a vector?
+            susceptible{std::move(susceptible)}, infected{std::move(infected)},
+            recovered{std::move(recovered)}, fatalities{fatalities}, disobedient{disobedient},
+            hospital_capacity{hospital_capacity}, fatality_modifier{fatality_modifier} {}
 
     unsigned int get_num_age_segments() const {
         return susceptible.size(); // Could use infections.size() or recovered.size(); simply a matter of preference.
@@ -107,7 +104,7 @@ std::ostream &operator<<(std::ostream &os, const sir &sir) {
         }
 
         for(int i = 0; i < sir.get_num_infected_phases(); ++i) {
-            float current_stage_infection = 0.0f;
+            double current_stage_infection = 0.0f;
 
             for(int j = 0; j < sir.age_group_proportions.size(); ++j) {
                 current_stage_infection += sir.infected[j][i] * sir.age_group_proportions[j];
@@ -117,7 +114,7 @@ std::ostream &operator<<(std::ostream &os, const sir &sir) {
         }
 
         for(int i = 0; i < sir.get_num_recovered_phases(); ++i) {
-            float current_stage_recovered = 0.0f;
+            double current_stage_recovered = 0.0f;
 
             for(int j = 0; j < sir.age_group_proportions.size(); ++j) {
                 current_stage_recovered += sir.recovered[j][i] * sir.age_group_proportions[j];
@@ -134,8 +131,8 @@ std::ostream &operator<<(std::ostream &os, const sir &sir) {
     else {
 
 
-        float new_infections = 0.0f;
-        float new_recoveries = 0.0f;
+        double new_infections = 0.0f;
+        double new_recoveries = 0.0f;
 
         for(int i = 0; i < sir.age_group_proportions.size(); ++i) {
             new_infections += sir.infected.at(i).at(0) * sir.age_group_proportions.at(i);
@@ -155,8 +152,8 @@ void from_json(const nlohmann::json &json, sir &current_sir) {
     json.at("susceptible").get_to(current_sir.susceptible);
     json.at("fatalities").get_to(current_sir.fatalities);
     json.at("disobedient").get_to(current_sir.disobedient);
-    json.at("hospital_infected_capacity").get_to(current_sir.hospital_infected_capacity);
-    json.at("over_capacity_fatality_modifier").get_to(current_sir.over_capacity_fatality_modifier);
+    json.at("hospital_capacity").get_to(current_sir.hospital_capacity);
+    json.at("fatality_modifier").get_to(current_sir.fatality_modifier);
     
     assert(current_sir.age_group_proportions.size() == current_sir.susceptible.size() && current_sir.age_group_proportions.size() == current_sir.infected.size()
            && current_sir.age_group_proportions.size() == current_sir.recovered.size() && "There must be an equal number of age groups between"
