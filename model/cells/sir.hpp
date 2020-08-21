@@ -54,7 +54,7 @@ struct sir {
     double get_total_fatalities() const {
         double total_fatalities = 0.0f;
         for(int i = 0; i < age_group_proportions.size(); ++i) {
-            total_fatalities += fatalities[i] * age_group_proportions[i];
+            total_fatalities += fatalities.at(i) * age_group_proportions.at(i);
         }
         return total_fatalities;
     }
@@ -62,7 +62,7 @@ struct sir {
     double get_total_infections() const {
         float total_infections = 0.0f;
         for(int i = 0; i < age_group_proportions.size(); ++i) {
-            total_infections += sum_state_vector(infected[i]) * age_group_proportions[i];
+            total_infections += sum_state_vector(infected.at(i)) * age_group_proportions.at(i);
         }
         return total_infections;
     }
@@ -70,7 +70,7 @@ struct sir {
     double get_total_recovered() const {
         double total_recoveries = 0.0f;
         for(int i = 0; i < age_group_proportions.size(); ++i) {
-            total_recoveries += sum_state_vector(recovered[i]) * age_group_proportions[i];
+            total_recoveries += sum_state_vector(recovered.at(i)) * age_group_proportions.at(i);
         }
         return total_recoveries;
     }
@@ -78,7 +78,7 @@ struct sir {
     double get_total_susceptible() const {
         double total_susceptible = 0.0f;
         for(int i = 0; i < age_group_proportions.size(); ++i) {
-            total_susceptible += susceptible[i] * age_group_proportions[i];
+            total_susceptible += susceptible.at(i) * age_group_proportions.at(i);
         }
         return total_susceptible;
     }
@@ -107,7 +107,7 @@ std::ostream &operator<<(std::ostream &os, const sir &sir) {
             double current_stage_infection = 0.0f;
 
             for(int j = 0; j < sir.age_group_proportions.size(); ++j) {
-                current_stage_infection += sir.infected[j][i] * sir.age_group_proportions[j];
+                current_stage_infection += sir.infected.at(j).at(i) * sir.age_group_proportions.at(j);
             }
 
             infected_information += "," + std::to_string(current_stage_infection);
@@ -117,7 +117,7 @@ std::ostream &operator<<(std::ostream &os, const sir &sir) {
             double current_stage_recovered = 0.0f;
 
             for(int j = 0; j < sir.age_group_proportions.size(); ++j) {
-                current_stage_recovered += sir.recovered[j][i] * sir.age_group_proportions[j];
+                current_stage_recovered += sir.recovered.at(j).at(i) * sir.age_group_proportions.at(j);
             }
 
             recovered_information += "," + std::to_string(current_stage_recovered);

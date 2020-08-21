@@ -31,11 +31,11 @@ void from_json(const nlohmann::json& json, simulation_config &v) {
     json.at("SIIRS_model").get_to(v.SIIRS_model);
 
     for(int i = 0; i < v.recovery_rates.size(); ++i) {
-        for(int k = 0; k < v.recovery_rates[i].size(); ++k){
+        for(int k = 0; k < v.recovery_rates.at(i).size(); ++k){
             // A sum of greater than one refers to more than the entire population of an infection stage.
-            assert(v.recovery_rates[i][k] + v.fatality_rates[i][k] <= 1.0f && "The recovery rate + fatality rate cannot exceed 1!");
+            assert(v.recovery_rates.at(i).at(k) + v.fatality_rates.at(i).at(k) <= 1.0f && "The recovery rate + fatality rate cannot exceed 1!");
         }
-        assert(v.fatality_rates[i].back() <= 1.0f && "The fatality rate cannot exceed one!"); // Assert because the recovery rate has
+        assert(v.fatality_rates.at(i).back() <= 1.0f && "The fatality rate cannot exceed one!"); // Assert because the recovery rate has
                                                                                                // one less entry than the fatality rates.
     }
 }
