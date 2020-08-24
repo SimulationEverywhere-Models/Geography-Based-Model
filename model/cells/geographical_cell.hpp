@@ -230,28 +230,29 @@ public:
             fatalities.at(i) += std::round(current_state.infected.at(age_segment_index).at(i) * fatality_rates.at(age_segment_index).at(i) * prec_divider) / prec_divider;
 
             if(current_state.get_total_infections() > current_state.hospital_capacity) {
-                fatalities.at(i) *= current_state.fatality_modifier;
+                fatalities.at(i) *= current_state.fatality_modifier;  // TODO you don't close this if. Should it be closed?
+            }  //TODO I added this bracket and reduced indentation for the rest of the formula
 
-                // Any stage before last stage of infection
-                if(i != current_state.get_num_infected_phases() - 1) {
-                    // There can't be more fatalities than the number of people who are infected at a stage plus
-                    // those who recover at that stage
-                    if(fatalities.at(i) > (current_state.infected.at(age_segment_index).at(i) - recovered.at(i))) {
-                        fatalities.at(i) = current_state.infected.at(age_segment_index).at(i) - recovered.at(i);
-                    }
-                }
-                    // Last stage of infection
-                else {
-                    // Since the number of recovered individuals on the first day of recovery was already set to be
-                    // the number of people on the last stage of infection, the above if-branch will always set
-                    // fatalities on the last stage of infection equal to 0. Thus for the last stage of infection,
-                    // fatalities are capped to the number of people who are on the last stage of infected.
-                    // The logic of this branch is a result of the note above.
-                    if(fatalities.back() > current_state.infected.at(age_segment_index).back()) {
-                        fatalities.at(i) = current_state.infected.at(age_segment_index).back();
-                    }
+            // Any stage before last stage of infection
+            if(i != current_state.get_num_infected_phases() - 1) {
+                // There can't be more fatalities than the number of people who are infected at a stage plus
+                // those who recover at that stage
+                if(fatalities.at(i) > (current_state.infected.at(age_segment_index).at(i) - recovered.at(i))) {
+                    fatalities.at(i) = current_state.infected.at(age_segment_index).at(i) - recovered.at(i);
                 }
             }
+                // Last stage of infection
+            else {  // TODO a little bit confusing, this should be 0 always, isn't it?
+                // Since the number of recovered individuals on the first day of recovery was already set to be
+                // the number of people on the last stage of infection, the above if-branch will always set
+                // fatalities on the last stage of infection equal to 0. Thus for the last stage of infection,
+                // fatalities are capped to the number of people who are on the last stage of infected.
+                // The logic of this branch is a result of the note above.
+                if(fatalities.back() > current_state.infected.at(age_segment_index).back()) {
+                    fatalities.at(i) = current_state.infected.at(age_segment_index).back();
+                }
+            }
+        //} TODO I commented this
         }
 
         return fatalities;
