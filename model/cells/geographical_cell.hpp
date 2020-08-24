@@ -84,11 +84,17 @@ public:
             // issue- recovery rate and fatality rates specify a percentage of the infected at a certain stage. As a result
             // the code cannot for example, calculate recovery, change the infected stage population, and then calculate
             // fatalities, or vice-versa. This would change the meaning of the input.
-            // This means that, due to how the code works, calculate recovered BEFORE fatalities.
 
-            std::vector<double> recovered = new_recoveries(res, age_segment_index);
+            // Calculate fatalities BEFORE recoveries. This avoids the following problem: Due to the fatality modifier (when
+            // hospitals are overwhelmed), a check to make sure fatalities do not exceed the infected population has to be done.
+            // This conflicts with the recovery logic, where it is assumed that all infected on the last stage recover. As a result,
+            // the logic to ensure that the recovered + fatalities for the last stage do not exceed the last stage infected population
+            // results in no fatalities being possible on the last stage of infection (as fatalities would have to be capped at
+            // infected population [for a stage] - recovered population [for a stage]. But the last stage of recovered
+            // was already set to the population of last stage of infected- meaning fatalities is always 0 for the last stage).
+            std::vector<double> fatalities = new_fatalities(res, age_segment_index);
 
-            std::vector<double> fatalities = new_fatalities(res, age_segment_index, recovered);
+            std::vector<double> recovered = new_recoveries(res, age_segment_index, fatalities);
 
             res.fatalities.at(age_segment_index) += std::accumulate(fatalities.begin(), fatalities.end(), 0.0f);
 
@@ -210,19 +216,26 @@ public:
         return std::min(cstate.susceptible.at(age_segment_index), inf);
     }
 
-    std::vector<double> new_recoveries(const sir &current_state, unsigned int age_segment_index) const {
+    std::vector<double> new_recoveries(const sir &current_state, unsigned int age_segment_index, const std::vector<double> &fatalities) const {
         std::vector<double> recovered(current_state.get_num_infected_phases(), 0.0f);
-        recovered.back() = current_state.infected.at(age_segment_index).back();
+
+        // Assume that any individuals that are not fatalities on the last stage of infection recover
+        recovered.back() = current_state.infected.at(age_segment_index).back() - fatalities.back();
 
         for (int i = 0; i < current_state.get_num_infected_phases() - 1; ++i) {
             // Calculate all of the new recovered- for every day that a population is infected, some recover.
-            recovered.at(i) += std::round(current_state.infected.at(age_segment_index).at(i) * recovery_rates.at(age_segment_index).at(i) * prec_divider) / prec_divider;
+            float new_recoveries = std::round(current_state.infected.at(age_segment_index).at(i) * recovery_rates.at(age_segment_index).at(i) * prec_divider) / prec_divider;
+
+            // There can't be more recoveries than those who have died
+            float maximum_possible_recoveries = current_state.infected.at(age_segment_index).at(i) - fatalities.at(i);
+
+            recovered.at(i) = std::min(new_recoveries, maximum_possible_recoveries);
         }
 
         return recovered;
     }
 
-    std::vector<double> new_fatalities(const sir &current_state, unsigned int age_segment_index, const std::vector<double> recovered) const {
+    std::vector<double> new_fatalities(const sir &current_state, unsigned int age_segment_index) const {
         std::vector<double> fatalities(current_state.get_num_infected_phases(), 0.0f);
 
         // Calculate all those who have died during an infection stage.
@@ -230,29 +243,11 @@ public:
             fatalities.at(i) += std::round(current_state.infected.at(age_segment_index).at(i) * fatality_rates.at(age_segment_index).at(i) * prec_divider) / prec_divider;
 
             if(current_state.get_total_infections() > current_state.hospital_capacity) {
-                fatalities.at(i) *= current_state.fatality_modifier;  // TODO you don't close this if. Should it be closed?
-            }  //TODO I added this bracket and reduced indentation for the rest of the formula
+                fatalities.at(i) *= current_state.fatality_modifier;
+            }
 
-            // Any stage before last stage of infection
-            if(i != current_state.get_num_infected_phases() - 1) {
-                // There can't be more fatalities than the number of people who are infected at a stage plus
-                // those who recover at that stage
-                if(fatalities.at(i) > (current_state.infected.at(age_segment_index).at(i) - recovered.at(i))) {
-                    fatalities.at(i) = current_state.infected.at(age_segment_index).at(i) - recovered.at(i);
-                }
-            }
-                // Last stage of infection
-            else {  // TODO a little bit confusing, this should be 0 always, isn't it?
-                // Since the number of recovered individuals on the first day of recovery was already set to be
-                // the number of people on the last stage of infection, the above if-branch will always set
-                // fatalities on the last stage of infection equal to 0. Thus for the last stage of infection,
-                // fatalities are capped to the number of people who are on the last stage of infected.
-                // The logic of this branch is a result of the note above.
-                if(fatalities.back() > current_state.infected.at(age_segment_index).back()) {
-                    fatalities.at(i) = current_state.infected.at(age_segment_index).back();
-                }
-            }
-        //} TODO I commented this
+            // There can't be more fatalities than the number of people who are infected at a stage
+            fatalities.at(i) = std::min(fatalities.at(i), current_state.infected.at(age_segment_index).at(i));
         }
 
         return fatalities;
