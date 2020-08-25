@@ -29,6 +29,6 @@ find_package(Boost COMPONENTS unit_test_framework system thread REQUIRED)
 
 file(MAKE_DIRECTORY logs)
 
-add_executable(pandemic-geographical_model src/main.cpp)
+add_executable(pandemic-geographical_model src/main.cpp model/cells/distribution_type.h model/cells/phase_rates_object.h)
 
 target_link_libraries(pandemic-geographical_model PUBLIC ${Boost_LIBRARIES})
