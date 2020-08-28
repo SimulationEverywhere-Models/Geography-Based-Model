@@ -8,31 +8,70 @@
 #include <random>
 
 enum class distribution_type {
-        Normal
+    Fixed,
+    Normal,
 };
 
-struct distribution_base {
+/// Keeps track of what distribution to use when a value is required
+struct distribution {
 
-    explicit distribution_base(std::normal_distribution<double> distribution)
+    explicit distribution(std::pair<unsigned int, unsigned int> valid_phase_indexes, std::pair<double, double> max_range_values)
+                            :
+                                valid_phase_rate_indexes{valid_phase_indexes},
+                                max_range_values{max_range_values},
+                                distribution_id{distribution_type::Fixed} {
+
+    }
+
+     distribution(std::pair<unsigned int, unsigned int> valid_phase_indexes, std::pair<double, double> max_range_values, unsigned int seed_value, std::normal_distribution<double> distribution)
                                 :
+                                    valid_phase_rate_indexes{valid_phase_indexes},
+                                    max_range_values{max_range_values},
+                                    random_engine{seed_value},
                                     normal_distribution{distribution},
                                     distribution_id{distribution_type::Normal} {
 
     }
 
+    bool within_relevant_index(unsigned int index) const {
+        return valid_phase_rate_indexes.first <= index && index < valid_phase_rate_indexes.second;
+    }
+
     double get_value() {
 
-        switch(distribution_id) {
-            case distribution_type ::Normal:
-                return normal_distribution(random_engine);
+         double value = 0.0;
+
+         switch(distribution_id) {
+
+             case distribution_type ::Fixed:
+                 break;
+
+             case distribution_type ::Normal:
+                value = normal_distribution(random_engine);
+                break;
+         }
+
+         // Ensure that the given value is within the acceptable value; if it is not, then return the value that is closest
+         // to an acceptable value.
+         if(value < max_range_values.first || value > max_range_values.second) {
+            if(std::abs(value - max_range_values.first) < std::abs(value - max_range_values.second)) {
+                return max_range_values.first;
+            }
+            else {
+                return max_range_values.second;
+            }
         }
+
+        return value;
     }
 
     private:
 
+        std::pair<unsigned int, unsigned int> valid_phase_rate_indexes;
+        std::pair<double, double> max_range_values;
         distribution_type distribution_id;
-
         std::default_random_engine random_engine;
+
         std::normal_distribution<double> normal_distribution;
 };
 

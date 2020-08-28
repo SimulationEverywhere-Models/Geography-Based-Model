@@ -39,6 +39,8 @@ public:
     phase_rates mobility_rates;
     phase_rates fatality_rates;
 
+    phase_rates_object random_virulence_rates;
+
     // To make the parameters of the correction_factors variable more obvious
     using infection_threshold = float;
     using mobility_correction_factor = std::array<float, 2>; // The first value is the mobility correction factor;
@@ -61,6 +63,8 @@ public:
         recovery_rates = std::move(config.recovery_rates);
         mobility_rates = std::move(config.mobility_rates);
         fatality_rates = std::move(config.fatality_rates);
+
+        random_virulence_rates = std::move(config.random_virulence_rates);
 
         prec_divider = config.prec_divider;
         SIIRS_model = config.SIIRS_model;
@@ -208,7 +212,7 @@ public:
 
             for (int i = 0; i < nstate.get_num_infected_phases(); ++i) {
                 inf += v.correlation * mobility_rates.at(age_segment_index).at(i) * // variable Cij
-                       virulence_rates.at(age_segment_index).at(i) * // variable lambda
+                       random_virulence_rates.get_value_at(age_segment_index, i) * // variable lambda
                        cstate.susceptible.at(age_segment_index) * nstate.get_total_infections() * // variables Si and Ij, respectively
                        neighbor_correction;  // New infections may be slightly fewer if there are mobility restrictions
             }

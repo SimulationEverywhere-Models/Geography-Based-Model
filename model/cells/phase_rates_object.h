@@ -9,44 +9,17 @@
 #include <vector>
 #include "distribution_type.h"
 
-class distribution_relevant_indexes
-{
-    public:
-
-        distribution_relevant_indexes(distribution_base distribution, unsigned int lower_index, unsigned int higher_index)
-                                :
-                distribution{distribution},
-                                    lower_index{lower_index},
-                                    higher_index{higher_index} {
-
-        }
-
-        bool within_relevant_index(unsigned int index) const {
-            return lower_index <= index && index < higher_index;
-        }
-
-        double get_value() const {
-            return distribution.get_value();
-        }
-
-    private:
-
-        mutable distribution_base distribution;
-        unsigned int lower_index;
-        unsigned int higher_index;
-};
-
+/// Encapsulates all of the phase rates for different age groups
 class phase_rates_object
 {
     public:
 
-
-        void set_distribution_indexes(std::vector<std::vector<distribution_relevant_indexes>> &distribution_indexes) {
-            this->distribution_indexes = std::move(distribution_indexes);
+        void set_distribution_indexes(std::vector<std::vector<distribution>> &distributions) {
+            this->distributions = std::move(distributions);
         }
 
         double get_value_at(unsigned int age_group_index, unsigned int phase_index) const {
-            for(const auto &i : distribution_indexes.at(age_group_index)) {
+            for(auto &i : distributions.at(age_group_index)) {
                 if(i.within_relevant_index(phase_index)) {
                     return i.get_value();
                 }
@@ -57,7 +30,9 @@ class phase_rates_object
 
     private:
 
-        std::vector<std::vector<distribution_relevant_indexes>> distribution_indexes;
+        // Mutable as the get_value_at() function must be const, but certain distributions, such as normal, internally mutate
+        // their state when getting a value from them.
+        mutable std::vector<std::vector<distribution>> distributions;
 };
 
 
