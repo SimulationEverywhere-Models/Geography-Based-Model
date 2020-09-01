@@ -39,11 +39,16 @@ public:
 
 // This class is for fixed coefficients -> the only attribute is the value of the coefficient
 class fixed_coefficient : public coefficient {
-    float value;
+    double value;
 public:
-    fixed_coefficient(float value) : coefficient(), value(value) {
+    fixed_coefficient(double value) : coefficient(), value(value) {
         assert(value >= 0 && value <= 1);
     }
+
+    // For using a factory pattern
+    template<typename... Args>
+    fixed_coefficient(Args&&... args) { assert(false && "Invalid constructor"); }
+
     double get_coefficient() override { return value; }
 };
 
@@ -51,12 +56,16 @@ public:
 class normal_coefficient : public coefficient {
     std::normal_distribution<double> distribution;
     std::default_random_engine random_engine;
-
+public:
     // With seed...
-    normal_coefficient(float mean_value, float stddev, float seed) : coefficient(), distribution(mean_value, stddev), random_engine(seed) {}
+    normal_coefficient(double mean_value, double stddev, double seed) : coefficient(), distribution(mean_value, stddev), random_engine(seed) {}
 
     // .. and without seed
-    normal_coefficient(float mean_value, float stddev) : coefficient(), distribution(mean_value, stddev), random_engine() {}
+    normal_coefficient(double mean_value, double stddev) : coefficient(), distribution(mean_value, stddev), random_engine() {}
+
+    // For using a factory pattern
+    template<typename... Args>
+    normal_coefficient(Args&&... args) { assert(false && "Invalid constructor"); }
 
     double get_coefficient() override {
         double value = distribution(random_engine);

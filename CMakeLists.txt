@@ -26,9 +26,21 @@ endif()
 
 set(Boost_USE_MULTITHREADED TRUE)
 find_package(Boost COMPONENTS unit_test_framework system thread REQUIRED)
+enable_testing()
 
 file(MAKE_DIRECTORY logs)
 
-add_executable(pandemic-geographical_model src/main.cpp model/cells/distribution_type.h model/cells/phase_rates_object.h)
+add_executable(pandemic-geographical_model src/main.cpp)
+
+# Test files
+# Unit tests
+FILE(GLOB TestSources RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} test/*_test.cpp)
+foreach (testSrc ${TestSources})
+    get_filename_component(testName ${testSrc} NAME_WE)
+    set(testName "${testName}_${exec_type}")
+    add_executable(${testName} test/main-test.cpp ${testSrc})
+    target_link_libraries(${testName} PUBLIC ${Boost_LIBRARIES})
+    add_test(${testName} ${testName})
+endforeach (testSrc)
 
 target_link_libraries(pandemic-geographical_model PUBLIC ${Boost_LIBRARIES})
