@@ -28,9 +28,11 @@ Requirements
 
   To get the aforementioned copy of cadmium with JSON support, the following commands can be used:
   
-  git clone https://github.com/SimulationEverywhere/cadmium.git --single-branch --branch celldevs-json
-  cd cadmium
-  git submodule update --init --recursive
+  1. git clone https://github.com/SimulationEverywhere/cadmium.git --single-branch --branch celldevs-json
+  
+  2. cd cadmium
+  
+  3. git submodule update --init --recursive
   
   **The above commands will change once the branched clone from, celldevs-json, is merged into master in its repository.
   Afterwards, the first command should be replaced with `git clone https://github.com/SimulationEverywhere/cadmium.git`**
