@@ -1,0 +1,81 @@
+To use the input generator:
+
+Modify the scenario.json to contain the format of the default values. So for example, given
+the following input file format:
+
+    ** Point A **
+{
+    "scenario": {
+        "default_delay": "inertial",
+        "default_cell_type": "zhong",
+        "default_state": {
+            "population": 1,
+            "age_group_proportions": [0.5, 0.5],
+            "susceptible": [1, 1, 1],
+            "fatalities": [0, 0, 0],
+            "infected": [
+                [0, 0, 0,0],
+                [0, 0, 0],
+            ],
+            "recovered": [
+                [0, 0, 0, 0],
+                [0, 0, 0, 0],
+            ],
+            "disobedient": 0.25,
+            "hospital_capacity": 0.2,
+            "fatality_modifier": 1.5
+        },
+        "default_vicinity": {
+            "correlation": 1,
+            "infection_correction_factors": {}
+        },
+        "default_config": {
+            "zhong": {
+                "precision": 100000000,
+                "virulence_rates": [
+                    [0.15, 0.15, 0.15],
+                    [0.15, 0.15, 0.15],
+                ],
+                "recovery_rates":
+                [
+                    [0.07, 0.07, 0.07],
+                    [0.07, 0.07, 0.07],
+                ],
+                "mobility_rates": [
+                    [0.6, 0.6, 0.6],
+                    [0.6, 0.6, 0.6],
+                ],
+                "fatality_rates": [
+                    [0.005, 0.005, 0.005,],
+                    [0.005, 0.005, 0.005]
+                ],
+                "SIIRS_model": true
+            }
+        }
+    }
+    
+    ** Point B **
+    ,
+
+    "cells": [ define some cells... ]
+}
+
+Copy everything between Point A and Point B into the scenario.json file, and add an ending
+brace at the end of the file.
+
+Next, open the generate_cadmium_json.py file. Go to section # In[16].
+Change the 'df', 'df_adj' and 'gdf_ontario' variables to point to the required files. For example:
+
+df = pd.read_csv("/home/binybrion/Documents/cadmiumgis/data/DA Ontario Clean.csv")  # General information (id, population, area...)
+df_adj = pd.read_csv("/home/binybrion/Documents/cadmiumgis/data/DA Ontario Adjacency.csv")  # Pair of adjacent territories
+gdf_ontario = gpd.read_file("/home/binybrion/Documents/cadmiumgis/data/DA Ontario.gpkg")  # GeoDataFrame with the territories poligons
+
+Finally, go to section # In[24].
+Change the state variable to contain the format each state should have. It should match format of the default state in the
+scenario.json file (though with optionally different values). 
+The addition to the cell's neighbourhood, done with the 'adj_full[str(row["dauid"])]["neighborhood"].append ...' should also
+be changed to match the required neighbourhood / vicinity structure in the scenario.json file.
+
+In the # In[26] section, make sure to change the location of where the output file is written.
+
+Finally, run the program: python generate_cadmium_json.py (Note: python3 may be required)

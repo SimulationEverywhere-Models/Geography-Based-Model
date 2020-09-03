@@ -16,6 +16,7 @@ struct sir {
     std::vector<std::vector<double>> recovered;
     std::vector<double> fatalities;
     std::unordered_map<std::string, hysteresis_factor> hysteresis_factors;
+    double population;
 
     double disobedient;
     double hospital_capacity;
@@ -92,7 +93,10 @@ bool operator<(const sir &lhs, const sir &rhs) { return true; }
 
 std::ostream &operator<<(std::ostream &os, const sir &sir) {
 
-    bool print_specific_state_information = true;
+    // The script included in the Script folder in this project assumes the less detailed output is printed
+    // So the following bool should be false. The more detailed output, when the following bool is true, is for
+    // the times more information about the various phases is required.
+    bool print_specific_state_information = false;
 
     if(print_specific_state_information) {
         std::string susceptible_information;
@@ -123,10 +127,10 @@ std::ostream &operator<<(std::ostream &os, const sir &sir) {
             recovered_information += "," + std::to_string(current_stage_recovered);
         }
 
-        // First two numbers are irrelevant when running the notebook at this time.
-        os << "<" << sir.get_num_age_segments() << ",0" << "," << sir.get_num_infected_phases() << "," << sir.get_num_recovered_phases() << ",";
 
-        os << sir.get_total_susceptible() << infected_information << recovered_information << ">";
+        os << sir.population - sir.population * sir.get_total_fatalities() <<"<" << sir.get_num_age_segments() << ",0" << ","
+        << sir.get_num_infected_phases() << "," << sir.get_num_recovered_phases() << ","
+            << sir.get_total_susceptible() << infected_information << recovered_information << ">";
     }
     else {
 
@@ -139,7 +143,9 @@ std::ostream &operator<<(std::ostream &os, const sir &sir) {
             new_recoveries += sir.recovered.at(i).at(0) * sir.age_group_proportions.at(i);
         }
 
-        os << "<" << sir.get_total_susceptible() << "," << sir.get_total_infections() << "," << sir.get_total_recovered() << "," << new_infections << "," << new_recoveries << "," << sir.get_total_fatalities() << ">";
+        os << "<" << sir.population - sir.population * sir.get_total_fatalities() << "," << sir.get_total_susceptible()
+            << "," << sir.get_total_infections() << "," << sir.get_total_recovered() << "," << new_infections << ","
+            << new_recoveries << "," << sir.get_total_fatalities() << ">";
     }
 
     return os;
@@ -154,6 +160,7 @@ void from_json(const nlohmann::json &json, sir &current_sir) {
     json.at("disobedient").get_to(current_sir.disobedient);
     json.at("hospital_capacity").get_to(current_sir.hospital_capacity);
     json.at("fatality_modifier").get_to(current_sir.fatality_modifier);
+    json.at("population").get_to(current_sir.population);
     
     assert(current_sir.age_group_proportions.size() == current_sir.susceptible.size() && current_sir.age_group_proportions.size() == current_sir.infected.size()
            && current_sir.age_group_proportions.size() == current_sir.recovered.size() && "There must be an equal number of age groups between"

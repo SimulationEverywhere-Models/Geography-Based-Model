@@ -3,6 +3,7 @@
         "default_delay": "inertial",
         "default_cell_type": "zhong",
         "default_state": {
+            "population": 1,
             "age_group_proportions": [0.35, 0.30, 0.25, 0.1, 0],
             "susceptible": [1, 1, 1, 1, 1],
             "fatalities": [0, 0, 0, 0, 0],
@@ -19,7 +20,10 @@
                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-            ]
+            ],
+            "disobedient": 0.25,
+            "hospital_capacity": 0.2,
+            "fatality_modifier": 1.5
         },
         "default_vicinity": {
             "correlation": 1,
@@ -27,7 +31,6 @@
         },
         "default_config": {
             "zhong": {
-                "disobedient": 0.0,
                 "precision": 100000000,
                 "virulence_rates": [
                     [0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15],
@@ -58,8 +61,7 @@
                     [0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005],
                     [0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005]
                 ],
-                "hospital_infected_capacity": 0.1,
-                "over_capacity_fatality_modifier": 1.2
+                "SIIRS_model": true
             }
         }
     },
@@ -68,6 +70,7 @@
         {
             "cell_id": "Country1",
             "state": {
+                "population": 1,
                 "age_group_proportions": [0.35, 0.30, 0.25, 0.1, 0],
                 "susceptible": [0.5, 0.6, 0.4, 0.3, 0.2],
                 "fatalities": [0, 0, 0, 0, 0],
@@ -84,7 +87,10 @@
                     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-                ]
+                ],
+                "disobedient": 0.25,
+                "hospital_capacity": 0.2,
+                "fatality_modifier": 1.5
             },
             "neighborhood": [
                 {
