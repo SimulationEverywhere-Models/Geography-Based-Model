@@ -55,7 +55,7 @@ gdf_ontario.head()
 # In[20]:
 
 
-template = json.loads(open("/home/binybrion/PycharmProjects/LeGenerator/scenario.json", "r").read())
+template = json.loads(open("scenario.json", "r").read())
 
 
 # In[21]:
@@ -140,7 +140,7 @@ for ind, row in df_adj.iterrows():  # Iterate the different pair of adjacent ter
     if correlation == 0:
         continue
     adj_full[str(row["dauid"])]["neighborhood"].append({"cell_id": str(row["Neighbor_dauid"]), "vicinity": {"correlation": correlation,
-                                                                                                                 "infection_correction_factors": {"0.1": [0.8, 0.1], "0.2": [0.5, 0.1], "0.3": [0.2, 0.1]}}})
+                                                                                                            "infection_correction_factors": {"0.1": [0.8, 0.1], "0.2": [0.5, 0.1], "0.3": [0.2, 0.1]}}})
     if ind % 1000 == 0:
         print(ind, "%.2f%%" % (100*ind/len(df_adj)))
 
@@ -164,7 +164,4 @@ with open("sample_output_SIIRS.json", "w") as f:
 
 
 # In[ ]:
-
-
-
 

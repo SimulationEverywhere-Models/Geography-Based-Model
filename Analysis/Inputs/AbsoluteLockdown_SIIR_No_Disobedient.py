@@ -3,6 +3,7 @@ absolute_threshold_02_01 = {
         "default_delay": "inertial",
         "default_cell_type": "zhong",
         "default_state": {
+            "population": 1,
             "age_group_proportions": [0.216, 0.279, 0.268, 0.193, 0.044],
             "susceptible": [1, 1, 1, 1, 1],
             "fatalities": [0, 0, 0, 0, 0],
@@ -68,6 +69,7 @@ absolute_threshold_02_01 = {
         {
             "cell_id": "Country1",
             "state": {
+                "population": 1,
                 "age_group_proportions": [0.216, 0.279, 0.268, 0.193, 0.044],
                 "susceptible": [0.5, 0.6, 0.4, 0.3, 0.2],
                 "fatalities": [0, 0, 0, 0, 0],
@@ -161,6 +163,7 @@ absolute_threshold_02_02 = {
         "default_delay": "inertial",
         "default_cell_type": "zhong",
         "default_state": {
+            "population": 1,
             "age_group_proportions": [0.216, 0.279, 0.268, 0.193, 0.044],
             "susceptible": [1, 1, 1, 1, 1],
             "fatalities": [0, 0, 0, 0, 0],
@@ -226,6 +229,7 @@ absolute_threshold_02_02 = {
         {
             "cell_id": "Country1",
             "state": {
+                "population": 1,
                 "age_group_proportions": [0.216, 0.279, 0.268, 0.193, 0.044],
                 "susceptible": [0.5, 0.6, 0.4, 0.3, 0.2],
                 "fatalities": [0, 0, 0, 0, 0],
@@ -319,6 +323,7 @@ absolute_threshold_03_01 = {
         "default_delay": "inertial",
         "default_cell_type": "zhong",
         "default_state": {
+            "population": 1,
             "age_group_proportions": [0.216, 0.279, 0.268, 0.193, 0.044],
             "susceptible": [1, 1, 1, 1, 1],
             "fatalities": [0, 0, 0, 0, 0],
@@ -384,6 +389,7 @@ absolute_threshold_03_01 = {
         {
             "cell_id": "Country1",
             "state": {
+                "population": 1,
                 "age_group_proportions": [0.216, 0.279, 0.268, 0.193, 0.044],
                 "susceptible": [0.5, 0.6, 0.4, 0.3, 0.2],
                 "fatalities": [0, 0, 0, 0, 0],
@@ -478,6 +484,7 @@ absolute_threshold_03_02 = {
         "default_delay": "inertial",
         "default_cell_type": "zhong",
         "default_state": {
+            "population": 1,
             "age_group_proportions": [0.216, 0.279, 0.268, 0.193, 0.044],
             "susceptible": [1, 1, 1, 1, 1],
             "fatalities": [0, 0, 0, 0, 0],
@@ -543,6 +550,7 @@ absolute_threshold_03_02 = {
         {
             "cell_id": "Country1",
             "state": {
+                "population": 1,
                 "age_group_proportions": [0.216, 0.279, 0.268, 0.193, 0.044],
                 "susceptible": [0.5, 0.6, 0.4, 0.3, 0.2],
                 "fatalities": [0, 0, 0, 0, 0],
@@ -637,6 +645,7 @@ absolute_threshold_03_03 = {
         "default_delay": "inertial",
         "default_cell_type": "zhong",
         "default_state": {
+            "population": 1,
             "age_group_proportions": [0.216, 0.279, 0.268, 0.193, 0.044],
             "susceptible": [1, 1, 1, 1, 1],
             "fatalities": [0, 0, 0, 0, 0],
@@ -702,6 +711,7 @@ absolute_threshold_03_03 = {
         {
             "cell_id": "Country1",
             "state": {
+                "population": 1,
                 "age_group_proportions": [0.216, 0.279, 0.268, 0.193, 0.044],
                 "susceptible": [0.5, 0.6, 0.4, 0.3, 0.2],
                 "fatalities": [0, 0, 0, 0, 0],
