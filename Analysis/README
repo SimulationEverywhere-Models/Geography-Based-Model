@@ -1,4 +1,98 @@
 The analysis document contains graphs of different scenarios along with an explanation of the result.
 The table of contents is at the end of the document.
 
-The Input folder contains the input used to create the graphs in the analysis document.
+The Input folder contains the input used to create the graphs in the analysis document. Note that the input is stored in
+Python files; the json variables within have to be converted to a separate JSON file in a valid JSON format. To do this,
+remove the variable name and change the SIIRS_model parameters to either 'true' or 'false' instead of 'True' or 'False'.
+Additionally, commas with no item afterwards may have to be removed, such as after the end of the last subarray in an array.
+
+The inputs are stored in Python file in case a script to run them is used.
+
+For example:
+
+  Remove this variable name and equals sign
+____________|_____________
+|                         |
+absolute_threshold_02_02 = {
+    "scenario": {
+        "default_delay": "inertial",
+        "default_cell_type": "zhong",
+        "default_state": {
+            "population": 1,
+            "age_group_proportions": [1.0],
+            "susceptible": [1.0],
+            "fatalities": [0.0],
+            "infected": [
+                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            ],
+            "recovered": [
+                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            ],
+            "disobedient": 0.25,
+            "hospital_capacity": 0.2,
+            "fatality_modifier": 1.5
+        },
+        "default_vicinity": {
+            "correlation": 1,
+            "infection_correction_factors": {"0.2": [0.0, 0.2]},
+        },
+        "default_config": {
+            "zhong": {
+                "precision": 100000000,
+                "virulence_rates": [
+                    [0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05],
+                ],
+                "recovery_rates":[
+                    [0.07, 0.07, 0.07, 0.07, 0.07, 0.07, 0.07, 0.07, 0.07, 0.07, 0.07, 0.07],
+                ],
+                "mobility_rates": [
+                    [0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6],
+                ],
+                "fatality_rates": [
+                    [0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005],
+                ],
+                "SIIRS_model": False (replace this with 'false')
+            }
+        }
+    },
+
+    "cells": [
+        {
+            "cell_id": "Country1",
+            "state": {
+                "population": 1,
+                "age_group_proportions": [0.216, 0.279, 0.268, 0.193, 0.044],
+                "susceptible": [0.5, 0.6, 0.4, 0.3, 0.2],
+                "fatalities": [0, 0, 0, 0, 0],
+                "infected": [
+                    [0.5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],]
+                ],
+                "recovered": [
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                ],
+                "disobedient": 0.25,
+                "hospital_capacity": 0.2,
+                "fatality_modifier": 1.5
+            },
+            "neighborhood": [
+                {"cell_id": "Country1"},
+                {
+                    "cell_id": "Country2",
+                    "vicinity":
+                        {
+                            "correlation": 0.5,
+                            "infection_correction_factors": {"0.2": [0.0, 0.2]},
+                        }
+                },
+                {
+                    "cell_id": "Country3",
+                    "vicinity":
+                        {
+                            "correlation": 0.6,
+                            "infection_correction_factors": {"0.2": [0.0, 0.2]},
+                        }
+                }
+            ]
+        }
+    ]
+}

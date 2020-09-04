@@ -4,6 +4,7 @@ less_infection_stages_SIIR = {
         "default_delay": "inertial",
         "default_cell_type": "zhong",
         "default_state": {
+            "population": 1,
             "age_group_proportions": [0.216, 0.279, 0.268, 0.193, 0.044],
             "susceptible": [1, 1, 1, 1, 1],
             "fatalities": [0, 0, 0, 0, 0],
@@ -69,6 +70,7 @@ less_infection_stages_SIIR = {
         {
             "cell_id": "Country1",
             "state": {
+                "population": 1,
                 "age_group_proportions": [0.216, 0.279, 0.268, 0.193, 0.044],
                 "susceptible": [0.5, 0.6, 0.4, 0.3, 0.2],
                 "fatalities": [0, 0, 0, 0, 0],
@@ -163,6 +165,7 @@ less_infection_stages_SIIRS = {
         "default_delay": "inertial",
         "default_cell_type": "zhong",
         "default_state": {
+            "population": 1,
             "age_group_proportions": [0.216, 0.279, 0.268, 0.193, 0.044],
             "susceptible": [1, 1, 1, 1, 1],
             "fatalities": [0, 0, 0, 0, 0],
@@ -228,6 +231,7 @@ less_infection_stages_SIIRS = {
         {
             "cell_id": "Country1",
             "state": {
+                "population": 1,
                 "age_group_proportions": [0.216, 0.279, 0.268, 0.193, 0.044],
                 "susceptible": [0.5, 0.6, 0.4, 0.3, 0.2],
                 "fatalities": [0, 0, 0, 0, 0],
