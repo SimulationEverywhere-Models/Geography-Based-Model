@@ -1,0 +1,10 @@
+{
+    "delayer": "transport",
+    "bidirectional_vicinities": "true",
+    "scenario": {
+    	"type": "grid",
+    	"params": {
+    		"wrapped": "true"
+    	}
+    }
+}
