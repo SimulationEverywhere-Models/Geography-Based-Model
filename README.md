@@ -2,8 +2,6 @@ Cell-DEVS-GeographyBased Model
 ===
 Overview
 ----
-This model is an extension of : https://github.com/SimulationEverywhere-Models/Geography-Based-Model
-New Visualization tools are used, and a newer version of Cadmium is used.
 
 A modified implementation of the Zhong model. The original model that this implementation is based off of can be obtained at:
 
@@ -41,17 +39,6 @@ If the location of this cloned repository has the location of `parentFolder/Geog
 
 Alternatively if the location of this cloned repository has the location of `parentFolder/projectsFolder/GeographicalModel`, then the cadmium library should be located in parentFolder.
 
-Downloading geopandas
----
-This project uses several python scripts that are dependent on the libraries: geopandas, numpy, and matplotlib. geopandas requires specific versions of many dependent libraries and installing them manually is difficult. The easiest way to download the right packages is to use conda. It is also recommended to install these packages in a seperate conda environment. Attemping to install in conda base may fail.
-1. https://www.anaconda.com/products/individual
-2. select 64-Bit (x86) Installer (Linux)
-3. run the .sh installer, recommended default settings
-4. open a terminal and activate conda if not already active
-5.  ```conda create --name geo_env```
-6.  ```conda activate geo_env```
-7.  ```conda install geopandas numpy matplotlib ```
-
 Compiling the Program
 ----
 **Using CMAKE**
@@ -84,4 +71,15 @@ Viewing Results in GIS Web Viewer V2
 ---
 The most recent version of the GIS Web Viewer can be found at http://206.12.94.204:8080/arslab-web/1.3/app-gis-v2/index.html
 
-Upload a simulation's geojson, messages.log, structure.json, visualization.json to view simulation results. See GIS_Viewer_1-3 folder README for more details
+Upload a simulation's geojson, messages.log, structure.json, visualization.json to view simulation results. See GIS_Viewer folder README for more details
+
+Installing geopandas
+---
+This project uses several python scripts that are dependent on the libraries: geopandas, numpy, and matplotlib. geopandas requires specific versions of many dependent libraries and installing them manually is difficult, the easiest way to download the right packages is to use conda.
+1. https://www.anaconda.com/products/individual
+2. select 64-Bit (x86) Installer (Linux)
+3. run the .sh installer, recommended default settings
+4. open a terminal and activate conda if not already active
+5.  ```conda create --name geo_env```
+6.  ```conda activate geo_env```
+7.  ```conda install geopandas numpy matplotlib ```
