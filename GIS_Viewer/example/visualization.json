@@ -1,0 +1,78 @@
+{
+	"playback":{
+		"speed":5,
+		"loop":false,
+		"cache":10
+	},
+	"basemap":	"openstreetmap",
+	"view":	{
+		"center":	[-75.7, 52.3],
+		"zoom":	5
+	},
+	"layers":	[{
+			"id":	"DA",
+			"type":	"polygon",
+			"file":	"ottawaTiny.geojson",
+			"label": "Ottawa DA SIRD",
+			"style": "default",
+			"model": "pandemic",
+			"join":	"dauid"
+		}],
+	"simulation":	[{
+			"name":	"Susceptible",
+			"layer":	"DA",
+			"fill":	{
+				"type":	"equivalent",
+				"property":	"Susceptible",
+				"colors":["rgba(197, 246, 250,0.6)","rgba(176, 213, 224,0.85)","rgba(154, 159, 196, 0.85)","rgba(147, 144, 183, 0.85)","rgba(66, 99, 235, 0.85)","rgba(53, 80, 191, 0.85)","rgba(35, 53, 127, 0.85)","rgba(21, 31, 76, 0.90)"]
+
+			},
+			"stroke":	{
+				"type":	"static",
+				"width":	1,
+				"color":	"rgba(0,0,0,1)"
+			}
+		},
+		{
+			"name":	"Infected",
+			"layer":	"DA",
+			"fill":	{
+				"type":	"equivalent",
+				"property":	"Infected",
+				"colors":["rgba(242, 190, 192, 0.6)","rgba(255, 168, 168, 0.85)","rgba(250, 82, 82, 0.85)","rgba(224, 49, 49, 0.85)","rgba(183, 40, 40, 0.85)","rgba(153, 33, 33, 0.85)","rgba(109, 7, 7, 0.85)","rgba(81, 2, 5, 0.90)"]
+			},
+			"stroke":	{
+				"type":	"static",
+				"width":	1,
+				"color":	"rgba(0,0,0,1)"
+			}
+		}, {
+			"name":	"Recovered",
+			"layer":	"DA",
+			"fill":	{
+				"type":	"equivalent",
+				"property":	"Recovered",
+				"colors":["rgba(216, 245, 162, 0.6)", "rgba(186, 211, 139, 0.85)","rgba(157, 178, 117, 0.85)","rgba(124, 153, 100, 0.85)","rgba(103, 127, 83, 0.85)","rgba(66, 102, 75, 0.85)","rgba(49, 76, 58, 0.85)","rgba(36, 56, 38, 0.90)"]
+
+			},
+			"stroke":	{
+				"type":	"static",
+				"width":	1,
+				"color":	"rgba(0,0,0,1)"
+			}
+		},
+		{
+			"name":	"Deaths",
+			"layer":	"DA",
+			"fill":	{
+				"type":	"quantile",
+				"property":	"Deaths",
+				"colors":["rgba(216, 222, 233, 0.6)","rgba(189, 194, 204, 0.85)","rgba(147, 169, 178, 0.85)","rgba(126, 145, 153, 0.85)","rgba(105, 120, 127, 0.85)","rgba(88, 73, 89, 0.85)","rgba(63, 52, 63, 0.85)","rgba(38, 31, 31, 0.90)"]
+			},
+			"stroke":	{
+				"type":	"static",
+				"width":	1,
+				"color":	"rgba(0,0,0,1)"
+			}
+		}]
+}

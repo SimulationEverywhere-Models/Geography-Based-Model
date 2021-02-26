@@ -1,0 +1,11 @@
+{
+	"fields": [
+        "Population",
+        "Susceptible",
+        "Infected",
+        "Recovered",
+        "New Infected",
+        "New Recovered",
+        "Deaths"
+    ]
+}
