@@ -64,11 +64,12 @@ logs/
 
 # Intermediate Results, GIS Viewer Results
 cadmium_gis/scenario.json
+cadmium_gis/*.ipynb_checkpoints
 config/scenario.json
 GIS_Viewer/ottawa/simulation_runs
-Scripts/MSG_Log_Parser/input
-Scripts/MSG_Log_Parser/output
-Scripts/MSG_Log_Parser/*.zip
+Scripts/Msg_Log_Parser/input
+Scripts/Msg_Log_Parser/output
+Scripts/Msg_Log_Parser/*.zip
 Scripts/Input_Generator/output
 
 
