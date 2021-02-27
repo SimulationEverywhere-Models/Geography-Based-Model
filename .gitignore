@@ -61,3 +61,15 @@ logs/
 
 # MacOS
 .DS_Store
+
+# Intermediate Results, GIS Viewer Results
+cadmium_gis/scenario.json
+config/scenario.json
+GIS_Viewer/ottawa/simulation_runs
+Scripts/MSG_Log_Parser/input
+Scripts/MSG_Log_Parser/output
+Scripts/MSG_Log_Parser/*.zip
+Scripts/Input_Generator/output
+
+
+
