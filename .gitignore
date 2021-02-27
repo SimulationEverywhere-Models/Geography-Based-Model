@@ -52,6 +52,9 @@ CTestTestfile.cmake
 cmake_install.cmake
 CMakeScripts
 
+#makefile
+Makefile
+
 # Build files
 bin/
 logs/
