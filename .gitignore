@@ -43,6 +43,7 @@ Cadmium.xcodeproj
 
 #VScode project files
 *.code-workspace
+*.vscode
 
 #Cmake
 cmake-build-debug
@@ -52,7 +53,7 @@ CTestTestfile.cmake
 cmake_install.cmake
 CMakeScripts
 
-#makefile
+# makefile
 Makefile
 
 # Build files
@@ -61,16 +62,3 @@ logs/
 
 # MacOS
 .DS_Store
-
-# Intermediate Results, GIS Viewer Results
-cadmium_gis/scenario.json
-cadmium_gis/*.ipynb_checkpoints
-config/scenario.json
-GIS_Viewer/ottawa/simulation_runs
-Scripts/Msg_Log_Parser/input
-Scripts/Msg_Log_Parser/output
-Scripts/Msg_Log_Parser/*.zip
-Scripts/Input_Generator/output
-
-
-
