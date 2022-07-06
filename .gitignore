@@ -41,6 +41,10 @@ cadmium.includes
 #Xcode project files
 Cadmium.xcodeproj
 
+#VScode project files
+*.code-workspace
+*.vscode
+
 #Cmake
 cmake-build-debug
 CMakeCache.txt
@@ -48,6 +52,9 @@ CMakeFiles
 CTestTestfile.cmake
 cmake_install.cmake
 CMakeScripts
+
+# makefile
+Makefile
 
 # Build files
 bin/
